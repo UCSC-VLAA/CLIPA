@@ -1,5 +1,5 @@
 
-This repo contains official JAX implementation of **CLIPA** in our paper: [An Inverse Scaling Law for CLIP Training]() 
+This repo contains official JAX implementation of **CLIPA** in our paper: [An Inverse Scaling Law for CLIP Training](https://arxiv.org/abs/2305.07017) 
 
 ## Data preparation
 
