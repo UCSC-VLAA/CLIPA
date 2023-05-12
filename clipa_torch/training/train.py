@@ -192,15 +192,7 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
             image_mean = args.image_mean or getattr(unwrap_model(model).visual, 'image_mean', None)
             image_std = args.image_std or getattr(unwrap_model(model).visual, 'image_std', None)
             images = images.float().div(255)
-            if args.patch_dropout_on_cpu:
-                patch_size = unwrap_model(model).visual.patch_size[0]
-                mean = torch.as_tensor(image_mean, dtype=images.dtype, device=images.device)[None, None, :]
-                mean = mean.repeat(1, 1, patch_size * patch_size)
-                std = torch.as_tensor(image_std, dtype=images.dtype, device=images.device)[None, None, :]
-                std = std.repeat(1, 1, patch_size * patch_size)
-                images.sub_(mean).div_(std)
-            else:
-                images = transforms.Normalize(mean=image_mean, std=image_std)(images)
+            images = transforms.Normalize(mean=image_mean, std=image_std)(images)
         # need to cast data type after to_float_on_device
         images = images.to(dtype=cast_dtype)
 
@@ -238,6 +230,8 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
 
             # If (i + 1) % accum_freq is not zero, move on to the next batch.
             if ((i + 1) % args.accum_freq) > 0:
+                if use_xla():
+                    xm.mark_step()
                 # FIXME this makes data time logging unreliable when accumulating
                 continue
 
@@ -355,15 +349,7 @@ def evaluate(model, data, epoch, step, args, should_zero_eval, should_val, tb_wr
                     image_mean = args.image_mean or getattr(unwrap_model(model).visual, 'image_mean', None)
                     image_std = args.image_std or getattr(unwrap_model(model).visual, 'image_std', None)
                     images = images.float().div(255)
-                    if args.patch_dropout_on_cpu:
-                        patch_size = unwrap_model(model).visual.patch_size[0]
-                        mean = torch.as_tensor(image_mean, dtype=images.dtype, device=images.device)[None, None, :]
-                        mean = mean.repeat(1, 1, patch_size * patch_size)
-                        std = torch.as_tensor(image_std, dtype=images.dtype, device=images.device)[None, None, :]
-                        std = std.repeat(1, 1, patch_size * patch_size)
-                        images.sub_(mean).div_(std)
-                    else:
-                        images = transforms.Normalize(mean=image_mean, std=image_std)(images)
+                    images = transforms.Normalize(mean=image_mean, std=image_std)(images)
                 # need to cast data type after to_float_on_device
                 images = images.to(dtype=cast_dtype)
 
