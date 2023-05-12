@@ -24,7 +24,7 @@ Check the [official doc](https://www.tensorflow.org/datasets/cli) for how to pre
 
 
 ## Usage
-First, you need to prepare the dataset and create the TPU VM instance.
+First, you need to prepare the dataset and create the TPU VM instance. Refer to [TPU_USAGE](../TPU_USAGE.md) for details.
 
 The [configs](configs/) folder contains the detailed configuration of our model and training details.
 
