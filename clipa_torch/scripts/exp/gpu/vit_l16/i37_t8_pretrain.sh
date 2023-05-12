@@ -16,6 +16,7 @@ TORCH_CUDNN_V8_API_ENABLED=1 TFDS_PREFETCH_SIZE=8192 torchrun --nproc_per_node 8
     --workers=6 \
     --model ViT-L-16-CL8-GAP \
     --precision 'amp_bf16' \
+    --ddp-static-graph \
     --local-loss \
     --gather-with-grad \
     --force-image-size 96 \

@@ -1,4 +1,10 @@
-TORCH_CUDNN_V8_API_ENABLED=1 TFDS_PREFETCH_SIZE=8192 torchrun --nproc_per_node 8 -m training.main \
+# run this script on a TPU v3-64 machine
+python3 -m torch_xla.distributed.xla_dist \
+--tpu=${TPU_NAME} \
+--restart-tpuvm-pod-server \
+--env TORCH_CUDNN_V8_API_ENABLED=1 \
+--env TFDS_PREFETCH_SIZE=1024 \
+-- python3 /abs_path/to/launch_xla.py --num-devices 8 training.main \
     --save-frequency 1 \
     --save-most-recent \
     --zeroshot-frequency 1 \
@@ -9,14 +15,13 @@ TORCH_CUDNN_V8_API_ENABLED=1 TFDS_PREFETCH_SIZE=8192 torchrun --nproc_per_node 8
     --beta2 0.95 \
     --warmup 782 \
     --wd 0.2 \
-    --batch-size 8192 \
+    --batch-size 1024 \
     --aug-cfg scale='(0.4, 1.0)' \
     --pos-embed 'sin_cos_2d' \
     --epochs=6 \
     --workers=6 \
     --model ViT-B-16-CL16 \
-    --precision 'amp_bf16' \
-    --ddp-static-graph \
+    --precision 'fp32' \
     --local-loss \
     --gather-with-grad \
     --force-image-size 112 \

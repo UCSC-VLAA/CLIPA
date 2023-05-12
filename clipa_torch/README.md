@@ -59,6 +59,8 @@ bash scripts/exp/gpu/vit_l16/i37_t8_finetune.sh
 ```
 - Remember to change the path to dataset and checkpoint to your own path. You have to use the imagenet validation path `/path/to/imagenet/val` if you are reading from disk! 
 - The training time is ~2 days for pre-training and ~1 day for fine-tuning on an A100 eight-GPU machine.
+- Note that to ensure proper shuffling diversity, each worker maintains a TFDS shuffling buffer and prefetch buffer. 
+This significantly increase cpu memory burden. If you observe cpu out-of-memory issue, try tune down the values of `TFDS_PREFETCH_SIZE` and `TFDS_SHUFFLE_SIZE`.
 
 ### Testing Instructions
 This repo was only used for evaluating zero-shot Top-1 accuracy on ImageNet-1k. 
@@ -71,6 +73,6 @@ All models are pre-trained for 6 epochs with reduced input token lengths and sub
 
 |                     |                                          Pretrained Model                                           | ImageNet |
 |---------------------|:---------------------------------------------------------------------------------------------------:|:--------:|
-| CLIPA-B/16(I50,T16) |                                          [download link]()                                          |   63.2   |
-| CLIPA-L/16(I17,T16) |                                          [download link]()                                          |   67.8   |
-| CLIPA_L/16(I37,T8)  | [download link]() |   69.3   |
+| CLIPA-B/16(I50,T16) | [download link](https://drive.google.com/file/d/1fURK0K_a3-83jVEI4PVEbnEJb_V6UbGv/view?usp=sharing) |   63.2   |
+| CLIPA-L/16(I17,T16) | [download link](https://drive.google.com/file/d/18qqZGOTGOgb3I3JWONuat6qObsgLq7sR/view?usp=sharing) |   67.8   |
+| CLIPA_L/16(I37,T8)  | [download link](https://drive.google.com/file/d/1lV7pLORUK04T9QKKx9TpYtMws-AZrib0/view?usp=sharing) |   69.3   |
