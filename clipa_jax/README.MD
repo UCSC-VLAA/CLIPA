@@ -11,7 +11,9 @@ enable training with fewer image/text tokens while maintaining competitive perfo
 
 
 ### Usage
-After clone this repo and create your own dataset and TPU VM instance
+First, you need to prepare the dataset and create the TPU VM instance.
+
+The [configs](clipa_jax/configs/model_b/) folder contains the detailed configuration of our model and training details.
 
 First 
 ```
@@ -36,6 +38,20 @@ After pre-training, you can fine-tune the model by running:
 bash scripts/fine_tuning.sh
 ```
 
+### Results
+<table><tbody>
+<!-- START TABLE -->
+<!-- TABLE HEADER -->
+<th valign="bottom"></th>
+<th valign="bottom">data</th>
+<th valign="bottom">sampled</th>
+<th valign="bottom">zero-shot IN-1K</th>
+<!-- TABLE BODY -->
+<tr><td align="left">ViT-B/16</td>
+<td align="center">LAION-400M</td>
+<td align="center">2.56B</td>
+<td align="center">59.9</td>
+</tbody></table>
 
 ### License
 This project is under the  Apache 2.0 License.
@@ -47,5 +63,5 @@ This project is built on [big vision](https://github.com/google-research/big_vis
 
 ### Contact
 If you have any question, please feel free to raise an issue or contact us directily: 
-Xianhang Li: xli421@ucsc.edu ;
+Xianhang Li: xli421@ucsc.edu;
 Zeyu Wang:  zwang615@ucsc.edu

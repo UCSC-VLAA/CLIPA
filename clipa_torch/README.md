@@ -6,23 +6,6 @@ Our implementation is heavily based on the [OpenCLIP](https://github.com/mlfound
 
 
 
-## Introduction
-CLIP, the first foundation model that connects images and text, has enabled many recent breakthroughs in computer vision. 
-However, its associated training cost is prohibitively high, imposing a significant barrier to its widespread exploration. 
-In this paper, we present a surprising finding that there exists an _inverse_ scaling law for CLIP training, 
-whereby the larger the image/text encoders used, the shorter the sequence length of image/text tokens that can be applied in training. 
-Moreover, we showcase that the strategy for reducing image/text token length plays a crucial role in determining the quality of this scaling law.
-
-As a result of this finding, we are able to successfully train CLIP even by using academic resources. 
-For example, on an A100 eight-GPU server, our CLIP models achieve zero-shot top-1 ImageNet accuracies of **63.2%** in about **2 days**, 
-**67.8%** in about **3 days**, and **69.3%** in about **4 days**. 
-By reducing the computation barrier associated with CLIP, we hope to inspire more research in this field, particularly from academics.
-
-<div align="center">
-  <img src="performance_compute_tradeoff.png"/>
-</div>
-
-
 ## Installation
 A simple 
 ```
