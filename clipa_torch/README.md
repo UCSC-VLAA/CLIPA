@@ -21,14 +21,14 @@ Note that this repo is compatible with both GPU and TPU. If you want to run the 
 
 
 ## Data preparation
-## LAION-400M
+### LAION-400M
 You can download the LAION-400M dataset using the handy [img2dataset](https://github.com/rom1504/img2dataset) tool. 
 It supports both `webdataset` and `tfrecord` format. 
 
 To run this code on Google Cloud, we strongly recommend `tfrecord` over `webdataset`.
 Since LAION-400M is not a TFDS officially supported dataset, for your convenience, we provide some self-implemented scripts (sorry, we know they are crudely written) for post-processing the downloaded tfrecord files [here](../data/laion400m/README.md)..
 
-## ImageNet-1K
+### ImageNet-1K
 Download and extract ImageNet data from http://image-net.org/.
 The directory structure is the [standard layout](https://pytorch.org/docs/stable/torchvision/datasets.html#imagefolder), and note that we only need the validation set:
 
