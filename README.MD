@@ -1,4 +1,4 @@
-## An Inverse Scaling Law for CLIP Training
+# An Inverse Scaling Law for CLIP Training
 
 This repo contains official Pytorch and JAX implementation of **CLIPA** in our paper: [An Inverse Scaling Law for CLIP Training](https://arxiv.org/abs/2305.07017) 
 
@@ -11,7 +11,7 @@ Overview of the Inverse Scaling Law: larger image/text encoders
 enable training with fewer image/text tokens while maintaining competitive performance
 </p>
 
-### Introduction
+## Introduction
 CLIP, the first foundation model that connects images and text, has enabled many recent breakthroughs in computer vision. 
 However, its associated training cost is prohibitively high, imposing a significant barrier to its widespread exploration. 
 In this paper, we present a surprising finding that there exists an _inverse_ scaling law for CLIP training, 
@@ -28,17 +28,19 @@ By reducing the computation barrier associated with CLIP, we hope to inspire mor
 </p>
 
 
-### License
+## License
 This project is under the  Apache 2.0 License.
 
 
-### Acknowledgement
+## Acknowledgement
 
-This project is built on [big vision](https://github.com/google-research/big_vision) and [OpenCLIP](https://github.com/mlfoundations/open_clip). Thanks for their contribution and delicate works!
-This work is supported by a gift from Open Philanthropy, TPU Research Cloud (TRC) program, and Google Cloud Research Credits program.
+The jax repo is built on [big vision](https://github.com/google-research/big_vision), and the pytorch repo is built on [OpenCLIP](https://github.com/mlfoundations/open_clip). 
+We've also borrowed some code from [TIMM](https://github.com/huggingface/pytorch-image-models) and [MAE](https://github.com/facebookresearch/mae).
+Many thanks to the awesome works from the open-source community!
 
+We are also very grateful that this work is supported by a gift from Open Philanthropy, TPU Research Cloud (TRC) program, and Google Cloud Research Credits program.
 
-### Citation
+## Citation
 
 ```
 @article{li2023inverse,
@@ -48,7 +50,7 @@ This work is supported by a gift from Open Philanthropy, TPU Research Cloud (TRC
       year={2023},
 }
 ```
-### Contact
+## Contact
 If you have any question, please feel free to raise an issue or contact us directily: 
 Xianhang Li: xli421@ucsc.edu;
 Zeyu Wang:  zwang615@ucsc.edu
