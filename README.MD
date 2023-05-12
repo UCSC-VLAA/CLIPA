@@ -1,6 +1,7 @@
 ## An Inverse Scaling Law for CLIP Training
 
-This repo contains official JAX implementation of **CLIPA** in our paper: [An Inverse Scaling Law for CLIP Training]() 
+This repo contains official JAX implementation of **CLIPA** in our paper: [An Inverse Scaling Law for CLIP Training](https://arxiv.org/abs/2305.07017) 
+
 
 
 
@@ -36,6 +37,17 @@ This project is under the  Apache 2.0 License.
 This project is built on [big vision](https://github.com/google-research/big_vision) and [OpenCLIP](https://github.com/mlfoundations/open_clip). Thanks for their contribution and delicate works!
 This work is supported by a gift from Open Philanthropy, TPU Research Cloud (TRC) program, and Google Cloud Research Credits program.
 
+
+### Citation
+
+```
+@article{li2023inverse,
+      title={An Inverse Scaling Law for CLIP Training}, 
+      author={Xianhang Li and Zeyu Wang and Cihang Xie},
+      journal={arXiv preprint arXiv:2305.07017},
+      year={2023},
+}
+```
 ### Contact
 If you have any question, please feel free to raise an issue or contact us directily: 
 Xianhang Li: xli421@ucsc.edu;
