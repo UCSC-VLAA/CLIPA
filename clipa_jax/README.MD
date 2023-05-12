@@ -13,7 +13,7 @@ enable training with fewer image/text tokens while maintaining competitive perfo
 ### Usage
 First, you need to prepare the dataset and create the TPU VM instance.
 
-The [configs](clipa_jax/configs/model_b/) folder contains the detailed configuration of our model and training details.
+The [configs](configs/) folder contains the detailed configuration of our model and training details.
 
 First 
 ```
@@ -52,6 +52,7 @@ bash scripts/fine_tuning.sh
 <td align="center">2.56B</td>
 <td align="center">59.9</td>
 </tbody></table>
+
 
 ### License
 This project is under the  Apache 2.0 License.
