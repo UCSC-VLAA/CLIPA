@@ -1,6 +1,6 @@
-export PROJECT_ID=focus-album-323718
-export ZONE=europe-west4-a
-export TPU_NAME=tpu-v3-64-pod-vm4
+export PROJECT_ID=[your project id]
+export ZONE=[your TPU location]
+export TPU_NAME=[your TPU VM name]
 
 echo  $PROJECT_ID
 echo $ZONE

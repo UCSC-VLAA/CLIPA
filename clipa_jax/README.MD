@@ -10,6 +10,32 @@ enable training with fewer image/text tokens while maintaining competitive perfo
 </p>
 
 
+### Usage
+After clone this repo and create your own dataset and TPU VM instance
+
+First 
+```
+cd clipa_jax
+```
+
+To begin with, navigate to the 'scripts/' directory and locate the three scripts [set_up_env.sh](scripts/set_up_env.sh), [pre_training.sh](scripts/pre_training.sh) and [fine_tuning.sh](scripts/fine_tuning.sh) provided. Before executing the scripts, ensure that you specify the TPU VM instance information and dataset path at the top of each file.
+
+
+Next, you can upload all necessary files to your TPU VM instance and set up the required environment by running the following command:
+```
+bash scripts/set_up_env.sh
+```
+
+Then pre-training can be done by running:
+```
+bash scripts/pre_training.sh
+```
+
+After pre-training, you can fine-tune the model by running:
+```
+bash scripts/fine_tuning.sh
+```
+
 
 ### License
 This project is under the  Apache 2.0 License.

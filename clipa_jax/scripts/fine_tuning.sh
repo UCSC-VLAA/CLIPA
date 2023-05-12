@@ -1,14 +1,15 @@
 #!/bin/bash
 
-export PROJECT_ID=focus-album-323718
-export ZONE=europe-west4-a
-export TPU_NAME=tpu-v3-64-pod-vm4
+export PROJECT_ID=[your project id]
+export ZONE=[your TPU location]
+export TPU_NAME=[your TPU VM name]
 
-TFDS_DATA_DIR=gs://jaxtpu-tfds-imagenet-eu-west4-a #/imagenet2012/5.1.0
-LAION_PATH=gs://jaxtpu-data-eu-west4/laion-400m-cv2resize-356m
-WORK_DIR=gs://lxh_jaxtpu_eu_ckpt/clip_inverse_scaling/model_b/
-MASK_INIT=gs://MASK_INIT=gs://lxh-jax-us-east1/clip_inverse_scaling/model_b/checkpoint.npz
-WANDB_log=4348a91d800a8e8eb33b86c30197241bb228e268
+
+TFDS_DATA_DIR=[your ImageNet-1k dataset location]
+LAION_PATH=[your laion-400m dataset location]
+WORK_DIR=[your work dir to save ckpt] # should be different with pre-train work dir or you will automatically resume pre-training
+MASK_INIT=[pre-trained ckpt location]
+WANDB_log=[your wandb login key] # only if you set wandb.log_wandb=True then you can revise the project name and experiment name
 
 echo  $PROJECT_ID
 echo $ZONE
