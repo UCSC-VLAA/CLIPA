@@ -54,15 +54,3 @@ bash scripts/fine_tuning.sh
 </tbody></table>
 
 
-### License
-This project is under the  Apache 2.0 License.
-
-
-### Acknowledgement
-
-This project is built on [big vision](https://github.com/google-research/big_vision). Thanks for their contribution and delicate works!
-
-### Contact
-If you have any question, please feel free to raise an issue or contact us directily: 
-Xianhang Li: xli421@ucsc.edu;
-Zeyu Wang:  zwang615@ucsc.edu
