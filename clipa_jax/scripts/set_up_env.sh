@@ -6,6 +6,7 @@ echo  $PROJECT_ID
 echo $ZONE
 echo $TPU_NAME
 
+gcloud compute config-ssh # need to configure ssh first time
 
 # upload files to all your pods (make sure all files are synced)
 gcloud alpha compute tpus tpu-vm scp --recurse ../../CLIPA/  $TPU_NAME:~/  --zone=$ZONE --worker=all --project ${PROJECT_ID}

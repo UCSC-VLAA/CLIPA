@@ -1,3 +1,8 @@
+export PROJECT_ID=[your project id]
+export ZONE=[your TPU location]
+export TPU_NAME=[your TPU VM name]
+export XRT_TPU_CONFIG='localservice;0;localhost:51011'
+
 # run this script on a TPU v3-64 machine
 python3 -m torch_xla.distributed.xla_dist \
 --tpu=${TPU_NAME} \
