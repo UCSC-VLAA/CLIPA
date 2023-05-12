@@ -1,4 +1,4 @@
-## An Inverse Scaling Law for CLIP Training
+# An Inverse Scaling Law for CLIP Training
 
 This repo contains official JAX implementation of **CLIPA** in our paper: [An Inverse Scaling Law for CLIP Training]() 
 
@@ -9,8 +9,21 @@ Overview of the Inverse Scaling Law: larger image/text encoders
 enable training with fewer image/text tokens while maintaining competitive performance
 </p>
 
+## Data preparation
 
-### Usage
+### LAION-400M
+You can download the LAION-400M dataset using the handy [img2dataset](https://github.com/rom1504/img2dataset) tool. 
+
+We have only tested this jax implementation on Google Cloud TPU. To run this code, you have to choose `tfrecord` format, instead of more common `webdataset` format.
+Since LAION-400M is not a TFDS officially supported dataset, for your convenience, we provide some self-implemented scripts (sorry, we know they are crudely written) for post-processing the downloaded tfrecord files [here](../data/laion400m/README.md).
+
+### ImageNet-1K
+Download and extract ImageNet data from http://image-net.org/. 
+This jax implementation only support reading dataset in tfrecord format. 
+Check the [official doc](https://www.tensorflow.org/datasets/cli) for how to prepare the tfds dataset.
+
+
+## Usage
 First, you need to prepare the dataset and create the TPU VM instance.
 
 The [configs](configs/) folder contains the detailed configuration of our model and training details.
@@ -38,7 +51,7 @@ After pre-training, you can fine-tune the model by running:
 bash scripts/fine_tuning.sh
 ```
 
-### Results
+## Results
 <table><tbody>
 <!-- START TABLE -->
 <!-- TABLE HEADER -->
