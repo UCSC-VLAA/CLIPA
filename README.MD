@@ -27,6 +27,11 @@ By reducing the computation barrier associated with CLIP, we hope to inspire mor
   <img src="clipa_jax/figs/acc_compute.png" width="1080">
 </p>
 
+## TPU Usage
+Our experiments are conducted on both GPUs and TPUs. Both the JAX and PyTorch implementation enable TPU training.
+But how to gain access and setup TPU machines? Check this [brief doc](TPU_USAGE.md).
+In a nutshell, you can access TPU machines on Google Cloud **for free**!
+
 
 ## License
 This project is under the  Apache 2.0 License.
