@@ -1,13 +1,5 @@
-# An Inverse Scaling Law for CLIP Training
 
-This repo contains official JAX implementation of **CLIPA** in our paper: [An Inverse Scaling Law for CLIP Training]() 
-
-
-<p align="center">
-  <img src="figs/inverse_scaling_law.png" width="1080">
-Overview of the Inverse Scaling Law: larger image/text encoders
-enable training with fewer image/text tokens while maintaining competitive performance
-</p>
+This repo contains official JAX implementation of **CLIPA** in our paper: [An Inverse Scaling Law for CLIP Training](https://arxiv.org/abs/2305.07017) 
 
 ## Data preparation
 
