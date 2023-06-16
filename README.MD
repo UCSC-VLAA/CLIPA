@@ -3,7 +3,9 @@
 This repo contains official Pytorch and JAX implementation of **CLIPA** in our paper: [An Inverse Scaling Law for CLIP Training](https://arxiv.org/abs/2305.07017) 
 
 
+## 📰 News
 
+**[2023.6.16]**  We release CLIPA-v2 [here](CLIPA_V2.pdf). Compared to the prior best publicly available CLIP model, ours can be trained faster and have better performance. [Model Zoo](clipa_jax/README.MD) is available now!  <br>
 
 <p align="center">
   <img src="clipa_jax/figs/inverse_scaling_law.png" width="1080">
@@ -11,10 +13,6 @@ Overview of the Inverse Scaling Law: larger image/text encoders
 enable training with fewer image/text tokens while maintaining competitive performance
 </p>
 
-## 📰 News
-
-**[2023.6.16]**  We release CLIPA-v2 [here](CLIPA_V2.pdf). Compared to the best publicly available CLIP model, ours is both
-better (**+1.0%**) and faster (by **∼39×**). [Model Zoo](clipa_jax/README.MD) is available now!  <br>
 
 
 ## Main Results
