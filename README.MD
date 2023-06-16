@@ -11,6 +11,51 @@ Overview of the Inverse Scaling Law: larger image/text encoders
 enable training with fewer image/text tokens while maintaining competitive performance
 </p>
 
+## 📰 News
+
+**[2023.6.16]**  We release CLIPA-v2 [here](CLIPA_V2.pdf). Compared to the best pub-
+licly available CLIP model, ours is both
+better (**+1.0%**) and faster (by **∼39×**). [Model Zoo](clipa_jax/README.MD) is available now!  <br>
+
+
+## Main Results
+
+<table><tbody>
+<!-- START TABLE -->
+<!-- TABLE HEADER -->
+<th valign="bottom"></th>
+<th valign="bottom">data</th>
+<th valign="bottom">image size</th>
+<th valign="bottom">text length</th>
+<th valign="bottom">seen samples</th>
+<th valign="bottom">zero-shot IN-1K</th>
+<th valign="bottom">model weight</th>
+<!-- TABLE BODY -->
+<tr><td align="left">H/14</td>
+<td align="center">LAION-2B</td>
+<td align="center">224x224</td>
+<td align="center">32</td>
+<td align="center">12.8B</td>
+<td align="center">78.6</td>
+<td align="center"><a href="https://drive.google.com/file/d/1H0ZNNvySDrZ2hmBrc9PrjdQP8YftwGFh/view?usp=sharing">download</td>
+<tr><td align="left">L/14</td>
+<td align="center">DataComp-1B</td>
+<td align="center">224x224</td>
+<td align="center">32</td>
+<td align="center">12.8B</td>
+<td align="center">79.7</td>
+<td align="center"><a href="https://drive.google.com/file/d/1oh9IFuX9pD0nd-m4Apl-Z9irX3N-G2_h/view?usp=sharing">download</td>
+<tr><td align="left">H/14</td>
+<td align="center">DataComp-1B</td>
+<td align="center">224x224</td>
+<td align="center">32</td>
+<td align="center">12.8B</td>
+<td align="center">81.5</td>
+<td align="center"><a href="https://drive.google.com/file/d/1Rpd157eay3t8_qsrnSHi_nWeGmhQGTvN/view?usp=sharing">download</td>
+</tbody></table>
+
+
+
 ## Introduction
 CLIP, the first foundation model that connects images and text, has enabled many recent breakthroughs in computer vision. 
 However, its associated training cost is prohibitively high, imposing a significant barrier to its widespread exploration. 
