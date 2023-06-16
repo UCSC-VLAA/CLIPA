@@ -76,7 +76,7 @@ bash scripts/fine_tuning.sh
 <td align="center">79.1</td>
 <td align="center"><a href="https://drive.google.com/file/d/1IQ0BgWGy0Tsui9iK_wdVifFKc3NfC0BD/view?usp=sharing">download</td>
 <tr><td align="left">L/14</td>
-<td align="center">DataComp-1B</td>
+<td align="center">DataCOMP-1B</td>
 <td align="center">84x84</td>
 <td align="center">8</td>
 <td align="center">224x224</td>
@@ -85,7 +85,7 @@ bash scripts/fine_tuning.sh
 <td align="center">79.7</td>
 <td align="center"><a href="https://drive.google.com/file/d/1oh9IFuX9pD0nd-m4Apl-Z9irX3N-G2_h/view?usp=sharing">download</td>
 <tr><td align="left">L/14</td>
-<td align="center">DataComp-1B</td>
+<td align="center">DataCOMP-1B</td>
 <td align="center">224x224</td>
 <td align="center">32</td>
 <td align="center">336x336</td>
@@ -94,7 +94,7 @@ bash scripts/fine_tuning.sh
 <td align="center">80.3</td>
 <td align="center"><a href="https://drive.google.com/file/d/1yJD8p27HdZGK2DZ8x64uR6idl_QNkL7w/view?usp=sharing">download</td>
 <tr><td align="left">H/14</td>
-<td align="center">LAION-2B</td>
+<td align="center">DataCOMP-1B</td>
 <td align="center">70x70</td>
 <td align="center">8</td>
 <td align="center">224x224</td>
@@ -103,7 +103,7 @@ bash scripts/fine_tuning.sh
 <td align="center">81.1</td>
 <td align="center"><a href="https://drive.google.com/file/d/1f55nRM5DQu0lnLbmCp1GttuTFrJg2UDP/view?usp=sharing">download</td>
 <tr><td align="left">H/14</td>
-<td align="center">LAION-2B</td>
+<td align="center">DataCOMP-1B</td>
 <td align="center">84x84</td>
 <td align="center">8</td>
 <td align="center">224x224</td>
