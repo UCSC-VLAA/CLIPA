@@ -91,10 +91,11 @@ def merge_params(loaded, inited, dont_load=()):
                     'fixed pos_embedding cannot be stored, re-intialized needed')
                 _, l, c = inited_flat["img/pos_embedding"].shape
                 h, w = (l - 1) ** .5, (l - 1) ** .5
-                loaded_flat[name] = posemb_sincos_2d(h, w, c, cls_token=True)
-                merged[name] = jax.image.resize(
-                    loaded_flat[name], shape=(
-                        h, w, c), method='bilinear')
+                if name in loaded_flat:
+                    logging.info('interplotate img pos embedding')
+                    merged[name] = jax.image.resize(loaded_flat[name], shape=inited_flat[name].shape, method='bilinear')
+                else:
+                    merged[name] = posemb_sincos_2d(h, w, c, cls_token=True)
             elif name == 'txt/pos_embedding':
                 logging.info(
                     'txt pos_embedding cannot be stored, re-intialized needed')

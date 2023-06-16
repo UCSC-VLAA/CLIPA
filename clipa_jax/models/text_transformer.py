@@ -241,6 +241,7 @@ class Encoder1DBlock(nn.Module):
         x = out["+mlp"] = x + y
         return x, out
 
+from flax.linen.partitioning import remat
 
 class Encoder(nn.Module):
     """Transformer Model Encoder for sequence to sequence translation."""
