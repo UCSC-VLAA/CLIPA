@@ -5,7 +5,7 @@ This repo contains official Pytorch and JAX implementation of **CLIPA** in our p
 
 ## 📰 News
 
-**[2023.6.16]**  We release CLIPA-v2. Compared to the prior best publicly available CLIP model, ours can be trained faster and have better performance. Our best model is H/14 on DataComp-1B with an accuracy of 81.8, and its training budget is <$150k! [[Model Zoo](clipa_jax/README.MD)] [[Tech Report](CLIPA_V2.pdf)]  <br>
+**[2023.6.16]**  We release CLIPA-v2. Compared to the prior best publicly available CLIP model, ours can be trained faster and have better performance. Our best model is H/14 on DataComp-1B with an accuracy of 81.8, and its estimated training cost is <$15k! [[Model Zoo](clipa_jax/README.MD)] [[Tech Report](CLIPA_V2.pdf)]  <br>
 
 
 
