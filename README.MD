@@ -13,8 +13,7 @@ enable training with fewer image/text tokens while maintaining competitive perfo
 
 ## 📰 News
 
-**[2023.6.16]**  We release CLIPA-v2 [here](CLIPA_V2.pdf). Compared to the best pub-
-licly available CLIP model, ours is both
+**[2023.6.16]**  We release CLIPA-v2 [here](CLIPA_V2.pdf). Compared to the best publicly available CLIP model, ours is both
 better (**+1.0%**) and faster (by **∼39×**). [Model Zoo](clipa_jax/README.MD) is available now!  <br>
 
 
