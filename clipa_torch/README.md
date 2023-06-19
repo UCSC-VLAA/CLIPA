@@ -101,11 +101,11 @@ If you wish to use them in clip_benchmark, check our example testing scripts car
 Here are CLIPA-v1 trained weights on LAION-400M with academic resources. 
 All models are pre-trained for 6 epochs with reduced input token lengths and subsequently fine-tuned for 0.36 epoch with full input token lengths.
 
-|                     |                                          Pretrained Model                                           | ImageNet |
-|---------------------|:---------------------------------------------------------------------------------------------------:|:--------:|
-| CLIPA-B/16(I50,T16) | [download link](https://drive.google.com/file/d/1fURK0K_a3-83jVEI4PVEbnEJb_V6UbGv/view?usp=sharing) |   63.2   |
-| CLIPA-L/16(I17,T16) | [download link](https://drive.google.com/file/d/18qqZGOTGOgb3I3JWONuat6qObsgLq7sR/view?usp=sharing) |   67.8   |
-| CLIPA_L/16(I37,T8)  | [download link](https://drive.google.com/file/d/1lV7pLORUK04T9QKKx9TpYtMws-AZrib0/view?usp=sharing) |   69.3   |
+|                     |                                          Pretrained Model                                           | zero-shot IN-1K |
+|---------------------|:---------------------------------------------------------------------------------------------------:|:-----:|
+| CLIPA-B/16(I50,T16) | [download](https://drive.google.com/file/d/1fURK0K_a3-83jVEI4PVEbnEJb_V6UbGv/view?usp=sharing) | 63.2  |
+| CLIPA-L/16(I17,T16) | [download](https://drive.google.com/file/d/18qqZGOTGOgb3I3JWONuat6qObsgLq7sR/view?usp=sharing) | 67.8  |
+| CLIPA_L/16(I37,T8)  | [download](https://drive.google.com/file/d/1lV7pLORUK04T9QKKx9TpYtMws-AZrib0/view?usp=sharing) | 69.3  |
 
 Here are CLIPA-v2 trained weights on the LAION-2B or DataComp-1B dataset. These weights are trained by our jax implementation and converted into pytorch format.
 Slight performance variation is possible due to framework difference. Note that these converted weights are not open_clip compatible.
