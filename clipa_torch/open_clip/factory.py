@@ -18,7 +18,7 @@ from .loss import ClipLoss, DistillClipLoss, CoCaLoss
 from .openai import load_openai_model
 from .pretrained import is_pretrained_cfg, get_pretrained_cfg, download_pretrained, list_pretrained_tags_by_model, download_pretrained_from_hf
 from .transform import image_transform, AugmentationCfg
-from .tokenizer import HFTokenizer, tokenize, syntax_mask_tokenize
+from .tokenizer import HFTokenizer, tokenize, syntax_mask_tokenize, get_pp_bert_tokenize
 from training.device_env_factory import use_xla
 
 
@@ -82,13 +82,17 @@ def get_tokenizer(model_name):
         config = get_model_config(model_name)
         if 'hf_tokenizer_name' in config['text_cfg']:
             tokenizer = HFTokenizer(config['text_cfg']['hf_tokenizer_name'])
+        elif 'bert_tokenizer' in config['text_cfg'] and config['text_cfg']['bert_tokenizer']:
+            tokenizer = get_pp_bert_tokenize(vocab_path=config['text_cfg']['vocab_path'],
+                                             max_len=config['text_cfg']['context_length'])
         elif 'text_mask' in config['text_cfg'] and config['text_cfg']['text_mask']:
             assert config['text_cfg']['text_mask'] == 'syntax', 'for now, only support syntax masking!'
             tokenizer = syntax_mask_tokenize
         else:
             tokenizer = tokenize
-    context_length = get_model_config(model_name)['text_cfg']['context_length']
-    tokenizer = partial(tokenizer, context_length=context_length)
+    if not ('bert_tokenizer' in config['text_cfg'] and config['text_cfg']['bert_tokenizer']):
+        context_length = get_model_config(model_name)['text_cfg']['context_length']
+        tokenizer = partial(tokenizer, context_length=context_length)
     return tokenizer
 
 
@@ -305,6 +309,8 @@ def create_model_and_transforms(
         output_dict: Optional[bool] = None,
         to_float_on_device: Optional[bool] = False,
         pos_embed: str = None,
+        interpolation: str = 'bicubic',  # only effective for inference
+        square_resize_only: bool = False, # only effective for inference
 ):
     model = create_model(
         model_name,
@@ -339,6 +345,8 @@ def create_model_and_transforms(
         mean=image_mean,
         std=image_std,
         to_float_on_device=to_float_on_device,
+        interpolation=interpolation,
+        square_resize_only=square_resize_only,
     )
 
     return model, preprocess_train, preprocess_val

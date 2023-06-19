@@ -39,6 +39,40 @@ We also support reading ImageNet-1K in the `tfrecord` format.
 Check the [official doc](https://www.tensorflow.org/datasets/cli) for how to prepare the tfds dataset.
 
 ## Usage
+```
+cd CLIPA
+pip install clipa_torch
+```
+
+```
+import torch
+import torch.nn.functional as F
+from PIL import Image
+import clipa_torch
+
+model, _, preprocess = clipa_torch.create_model_and_transforms('ViT-H-14-CL32-GAP-BigVision', 
+                                                                pretrained='/path/to/ckpt', 
+                                                                force_image_size=336,
+                                                                image_mean=[0.485, 0.456, 0.406],
+                                                                image_std=[0.229, 0.224, 0.225],
+                                                                interpolation='bilinear',
+                                                                square_resize_only=True,
+                                                                )
+tokenizer = clipa_torch.get_tokenizer('ViT-H-14-CL32-GAP-BigVision')
+
+image = preprocess(Image.open("CLIP.png")).unsqueeze(0)
+text = tokenizer(["a diagram", "a dog", "a cat"])
+
+with torch.no_grad(), torch.cuda.amp.autocast():
+    image_features = model.encode_image(image)
+    text_features = model.encode_text(text)
+    image_features = F.normalize(image_features, dim=-1)
+    text_features = F.normalize(text_features, dim=-1)
+
+    text_probs = (100.0 * image_features @ text_features.T).softmax(dim=-1)
+
+print("Label probs:", text_probs)  # prints: [[1., 0., 0.]]
+```
 
 ### Training Instructions
 We provide example scripts to reproduce our CLIPA results on an A100 eight-GPU machine.
@@ -59,10 +93,12 @@ This significantly increase cpu memory burden. If you observe cpu out-of-memory 
 ### Testing Instructions
 This repo was only used for evaluating zero-shot Top-1 accuracy on ImageNet-1k. 
 For evaluation on more datasets, check the amazing [clip_benchmark](https://github.com/LAION-AI/CLIP_benchmark).
-The checkpoints from this repo should be readily applicable.
+The CLIPA-v1 checkpoints from this repo should be readily applicable.
+As for CLIPA-v2 checkpoints, we have provided some [example testing scripts](scripts/test) for your convenience. 
+If you wish to use them in clip_benchmark, check our example testing scripts carefully and follow their instructions to add other CLIP models.
 
 ### Model Weights
-Here are CLIPA trained weights on LAION-400M with academic resources. 
+Here are CLIPA-v1 trained weights on LAION-400M with academic resources. 
 All models are pre-trained for 6 epochs with reduced input token lengths and subsequently fine-tuned for 0.36 epoch with full input token lengths.
 
 |                     |                                          Pretrained Model                                           | ImageNet |
@@ -70,3 +106,76 @@ All models are pre-trained for 6 epochs with reduced input token lengths and sub
 | CLIPA-B/16(I50,T16) | [download link](https://drive.google.com/file/d/1fURK0K_a3-83jVEI4PVEbnEJb_V6UbGv/view?usp=sharing) |   63.2   |
 | CLIPA-L/16(I17,T16) | [download link](https://drive.google.com/file/d/18qqZGOTGOgb3I3JWONuat6qObsgLq7sR/view?usp=sharing) |   67.8   |
 | CLIPA_L/16(I37,T8)  | [download link](https://drive.google.com/file/d/1lV7pLORUK04T9QKKx9TpYtMws-AZrib0/view?usp=sharing) |   69.3   |
+
+Here are CLIPA-v2 trained weights on the LAION-2B or DataComp-1B dataset. These weights are trained by our jax implementation and converted into pytorch format.
+Slight performance variation is possible due to framework difference. Note that these converted weights are not open_clip compatible.
+Try our example testing scripts for evaluation.
+
+<table><tbody>
+<!-- START TABLE -->
+<!-- TABLE HEADER -->
+<th valign="bottom"></th>
+<th valign="bottom">data</th>
+<th valign="bottom">pre-train image size</th>
+<th valign="bottom">pre-train text length</th>
+<th valign="bottom">fine-tune image size</th>
+<th valign="bottom">fine-tune text length</th>
+<th valign="bottom">seen samples</th>
+<th valign="bottom">zero-shot IN-1K</th>
+<th valign="bottom">model weight</th>
+<!-- TABLE BODY -->
+<tr><td align="left">H/14</td>
+<td align="center">LAION-2B</td>
+<td align="center">224x224</td>
+<td align="center">32</td>
+<td align="center">336x336</td>
+<td align="center">32</td>
+<td align="center">12.8B+512M+128M</td>
+<td align="center">79.1</td>
+<td align="center"><a href="https://drive.google.com/file/d/1EiQpLvL51AXEFzJ33e6z58N0dQ83CSux/view?usp=sharing">download</td>
+<tr><td align="left">L/14</td>
+<td align="center">DataCOMP-1B</td>
+<td align="center">84x84</td>
+<td align="center">8</td>
+<td align="center">224x224</td>
+<td align="center">32</td>
+<td align="center">12.8B+512M</td>
+<td align="center">79.7</td>
+<td align="center"><a href="https://drive.google.com/file/d/1PZCZZ-mxHnye_fluCPxqHSdm5SmF9BCT/view?usp=sharing">download</td>
+<tr><td align="left">L/14</td>
+<td align="center">DataCOMP-1B</td>
+<td align="center">224x224</td>
+<td align="center">32</td>
+<td align="center">336x336</td>
+<td align="center">32</td>
+<td align="center">12.8B+512M+128M</td>
+<td align="center">80.3</td>
+<td align="center"><a href="https://drive.google.com/file/d/1Vpon6Dn0E3xDfyCIuOW1SPo9haKYvFiD/view?usp=sharing">download</td>
+<tr><td align="left">H/14</td>
+<td align="center">DataCOMP-1B</td>
+<td align="center">70x70</td>
+<td align="center">8</td>
+<td align="center">224x224</td>
+<td align="center">32</td>
+<td align="center">12.8B+512M</td>
+<td align="center">81.1</td>
+<td align="center"><a href="https://drive.google.com/file/d/1ELP6A3Z_P6QvVpq15rMaywdYSlsyXdzZ/view?usp=sharing">download</td>
+<tr><td align="left">H/14</td>
+<td align="center">DataCOMP-1B</td>
+<td align="center">84x84</td>
+<td align="center">8</td>
+<td align="center">224x224</td>
+<td align="center">32</td>
+<td align="center">12.8B+512M</td>
+<td align="center">81.5</td>
+<td align="center"><a href="https://drive.google.com/file/d/1JwnpWGgMV29svZRTZR8gPm_2ieZcPAy6/view?usp=sharing">download</td>
+<tr><td align="left">H/14</td>
+<td align="center">DataCOMP-1B</td>
+<td align="center">224x224</td>
+<td align="center">32</td>
+<td align="center">336x336</td>
+<td align="center">32</td>
+<td align="center">12.8B+512M+128M</td>
+<td align="center">81.8</td>
+<td align="center"><a href="https://drive.google.com/file/d/1oOACMg3MKXUpG-xn-UrqDWFVEIvenA-F/view?usp=sharing">download</td>
+</tbody></table>

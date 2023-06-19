@@ -12,6 +12,7 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 from torch.utils.checkpoint import checkpoint
+from functools import partial
 
 from training.device_env_factory import use_xla
 from .hf_model import HFTextEncoder
@@ -45,6 +46,9 @@ class CLIPVisionCfg:
     timm_drop_path: Optional[float] = None  # backbone stochastic depth
     output_tokens: bool = False
     pos_embed: str = 'learnable'
+    gelu_approximate: str = 'none'
+    ln_pre: bool = True
+    pool_style: str = 'open_clip'
 
 
 @dataclass
@@ -64,6 +68,11 @@ class CLIPTextCfg:
     pad_id: int = 0
     output_tokens: bool = False
     text_mask: str = 'first' # default first truncate in bpe_tokenizer
+    gelu_approximate: str = 'none'
+    pool_style: str = 'open_clip'
+    bert_tokenizer: bool = False
+    vocab_path: str = None
+    attention_mask: bool = True
 
 
 def get_cast_dtype(precision: str):
@@ -116,6 +125,8 @@ def _build_vision_tower(
     else:
         vision_heads = vision_cfg.width // vision_cfg.head_width
         norm_layer = LayerNormFp32 if cast_dtype in (torch.float16, torch.bfloat16) else LayerNorm
+        if act_layer==nn.GELU:
+            act_layer = partial(act_layer, approximate=vision_cfg.gelu_approximate)
         visual = VisionTransformer(
             image_size=vision_cfg.image_size,
             patch_size=vision_cfg.patch_size,
@@ -135,6 +146,8 @@ def _build_vision_tower(
             act_layer=act_layer,
             norm_layer=norm_layer,
             pos_embed=vision_cfg.pos_embed,
+            ln_pre=vision_cfg.ln_pre,
+            pool_style=vision_cfg.pool_style,
         )
 
     return visual
@@ -162,6 +175,9 @@ def _build_text_tower(
         act_layer = QuickGELU if quick_gelu else nn.GELU
         norm_layer = LayerNormFp32 if cast_dtype in (torch.float16, torch.bfloat16) else LayerNorm
 
+        if act_layer==nn.GELU:
+            act_layer = partial(act_layer, approximate=text_cfg.gelu_approximate)
+
         text = TextTransformer(
             context_length=text_cfg.context_length,
             vocab_size=text_cfg.vocab_size,
@@ -175,6 +191,8 @@ def _build_text_tower(
             pad_id=text_cfg.pad_id,
             act_layer=act_layer,
             norm_layer=norm_layer,
+            pool_style=text_cfg.pool_style,
+            attention_mask=text_cfg.attention_mask,
         )
     return text
 
@@ -197,11 +215,13 @@ class CLIP(nn.Module):
 
         text = _build_text_tower(embed_dim, text_cfg, quick_gelu, cast_dtype)
         self.transformer = text.transformer
+        self.context_length = text.context_length
         self.vocab_size = text.vocab_size
         self.token_embedding = text.token_embedding
         self.positional_embedding = text.positional_embedding
         self.ln_final = text.ln_final
         self.text_projection = text.text_projection
+        self.pool_style = text.pool_style
         self.register_buffer('attn_mask', text.attn_mask, persistent=False)
 
         self.logit_scale = nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
@@ -230,7 +250,16 @@ class CLIP(nn.Module):
         x = x.permute(1, 0, 2)  # LND -> NLD
         x = self.ln_final(x)  # [batch_size, n_ctx, transformer.width]
         # take features from the eot embedding (eot_token is the highest number in each sequence)
-        x = x[torch.arange(x.shape[0]), text.argmax(dim=-1)] @ self.text_projection
+        if self.pool_style == 'open_clip':
+            x = x[torch.arange(x.shape[0]), text.argmax(dim=-1)] @ self.text_projection
+        elif self.pool_style == 'big_vision_tok':
+            pooled = x[:, 0]
+            x = pooled @ self.text_projection
+        elif self.pool_style == 'big_vision_last':
+            pooled = x[:, -1]
+            x = pooled @ self.text_projection
+        else:
+            raise ValueError
         return F.normalize(x, dim=-1) if normalize else x
 
     def forward(self, image, text):
@@ -261,6 +290,8 @@ class CustomTextCLIP(nn.Module):
         self.output_dict = output_dict
         self.visual = _build_vision_tower(embed_dim, vision_cfg, quick_gelu, cast_dtype)
         self.text = _build_text_tower(embed_dim, text_cfg, quick_gelu, cast_dtype)
+        self.context_length = self.text.context_length
+        self.vocab_size = self.text.vocab_size
         self.logit_scale = nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
 
     def lock_image_tower(self, unlocked_groups=0, freeze_bn_stats=False):

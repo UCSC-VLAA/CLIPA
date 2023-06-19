@@ -246,6 +246,8 @@ def main(args):
         output_dict=True,
         to_float_on_device=args.to_float_on_device,
         pos_embed=args.pos_embed,
+        interpolation=args.interpolation,  # only effective for inference
+        square_resize_only=args.square_resize_only,  # only effective for inference
     )
     if args.distill:
         # FIXME: currenlty assumes the model your distilling from has the same tokenizer & transforms.
