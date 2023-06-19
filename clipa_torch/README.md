@@ -40,17 +40,17 @@ Check the [official doc](https://www.tensorflow.org/datasets/cli) for how to pre
 
 ## Usage
 ```
-cd CLIPA
-pip install clipa_torch
+cd CLIPA/clipa_torch
+pip install -v .
 ```
 
 ```
 import torch
 import torch.nn.functional as F
 from PIL import Image
-import clipa_torch
+from clipa_torch.open_clip import create_model_and_transforms, get_tokenizer
 
-model, _, preprocess = clipa_torch.create_model_and_transforms('ViT-H-14-CL32-GAP-BigVision', 
+model, _, preprocess = create_model_and_transforms('ViT-H-14-CL32-GAP-BigVision', 
                                                                 pretrained='/path/to/ckpt', 
                                                                 force_image_size=336,
                                                                 image_mean=[0.485, 0.456, 0.406],
@@ -58,7 +58,7 @@ model, _, preprocess = clipa_torch.create_model_and_transforms('ViT-H-14-CL32-GA
                                                                 interpolation='bilinear',
                                                                 square_resize_only=True,
                                                                 )
-tokenizer = clipa_torch.get_tokenizer('ViT-H-14-CL32-GAP-BigVision')
+tokenizer = get_tokenizer('ViT-H-14-CL32-GAP-BigVision')
 
 image = preprocess(Image.open("CLIP.png")).unsqueeze(0)
 text = tokenizer(["a diagram", "a dog", "a cat"])
