@@ -116,66 +116,55 @@ Try our example testing scripts for evaluation.
 <!-- TABLE HEADER -->
 <th valign="bottom"></th>
 <th valign="bottom">data</th>
-<th valign="bottom">pre-train image size</th>
-<th valign="bottom">pre-train text length</th>
-<th valign="bottom">fine-tune image size</th>
-<th valign="bottom">fine-tune text length</th>
-<th valign="bottom">seen samples</th>
+<th valign="bottom">Schedule</th>
+<th valign="bottom">GPU Hours</th>
+<th valign="bottom">Estimated Cost</th>
 <th valign="bottom">zero-shot IN-1K</th>
 <th valign="bottom">model weight</th>
 <!-- TABLE BODY -->
 <tr><td align="left">H/14</td>
 <td align="center">LAION-2B</td>
-<td align="center">224x224</td>
-<td align="center">32</td>
-<td align="center">336x336</td>
-<td align="center">32</td>
-<td align="center">12.8B+512M+128M</td>
+<td align="center">12.8B@84 + 512M@224 + 128M@336</td>
+<td align="center">8580</td>
+<td align="center">$13616</td>
 <td align="center">79.1</td>
 <td align="center"><a href="https://drive.google.com/file/d/1EiQpLvL51AXEFzJ33e6z58N0dQ83CSux/view?usp=sharing">download</td>
 <tr><td align="left">L/14</td>
 <td align="center">DataCOMP-1B</td>
-<td align="center">84x84</td>
-<td align="center">8</td>
-<td align="center">224x224</td>
-<td align="center">32</td>
-<td align="center">12.8B+512M</td>
+<td align="center">12.8B@84 + 512M@224</td>
+<td align="center">4008</td>
+<td align="center">$6318</td>
 <td align="center">79.7</td>
 <td align="center"><a href="https://drive.google.com/file/d/1PZCZZ-mxHnye_fluCPxqHSdm5SmF9BCT/view?usp=sharing">download</td>
 <tr><td align="left">L/14</td>
 <td align="center">DataCOMP-1B</td>
-<td align="center">224x224</td>
-<td align="center">32</td>
-<td align="center">336x336</td>
-<td align="center">32</td>
-<td align="center">12.8B+512M+128M</td>
+<td align="center">12.8B@84 + 512M@224 + 128M@336</td>
+<td align="center">4520</td>
+<td align="center">$7124</td>
 <td align="center">80.3</td>
 <td align="center"><a href="https://drive.google.com/file/d/1Vpon6Dn0E3xDfyCIuOW1SPo9haKYvFiD/view?usp=sharing">download</td>
 <tr><td align="left">H/14</td>
 <td align="center">DataCOMP-1B</td>
-<td align="center">70x70</td>
-<td align="center">8</td>
-<td align="center">224x224</td>
-<td align="center">32</td>
-<td align="center">12.8B+512M</td>
+<td align="center">12.8B@70 + 512M@224</td>
+<td align="center">5920</td>
+<td align="center">$9324</td>
 <td align="center">81.1</td>
 <td align="center"><a href="https://drive.google.com/file/d/1ELP6A3Z_P6QvVpq15rMaywdYSlsyXdzZ/view?usp=sharing">download</td>
 <tr><td align="left">H/14</td>
 <td align="center">DataCOMP-1B</td>
-<td align="center">84x84</td>
-<td align="center">8</td>
-<td align="center">224x224</td>
-<td align="center">32</td>
-<td align="center">12.8B+512M</td>
+<td align="center">12.8B@84 + 512M@224</td>
+<td align="center">7776</td>
+<td align="center">$12247</td>
 <td align="center">81.5</td>
 <td align="center"><a href="https://drive.google.com/file/d/1JwnpWGgMV29svZRTZR8gPm_2ieZcPAy6/view?usp=sharing">download</td>
 <tr><td align="left">H/14</td>
 <td align="center">DataCOMP-1B</td>
-<td align="center">224x224</td>
-<td align="center">32</td>
-<td align="center">336x336</td>
-<td align="center">32</td>
-<td align="center">12.8B+512M+128M</td>
+<td align="center">12.8B@84 + 512M@224 + 128M@336</td>
+<td align="center">8580</td>
+<td align="center">$13616</td>
 <td align="center">81.8</td>
 <td align="center"><a href="https://drive.google.com/file/d/1oOACMg3MKXUpG-xn-UrqDWFVEIvenA-F/view?usp=sharing">download</td>
 </tbody></table>
+
+Our CLIPA-v2’s GPU hour is estimated using an 8-A100 80GB GPU machine on Google Cloud. 
+The corresponding training cost is estimated based on 80GB A100’s cloud pricing.

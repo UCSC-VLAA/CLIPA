@@ -25,35 +25,37 @@ enable training with fewer image/text tokens while maintaining competitive perfo
 <!-- TABLE HEADER -->
 <th valign="bottom"></th>
 <th valign="bottom">data</th>
-<th valign="bottom">image size</th>
-<th valign="bottom">text length</th>
-<th valign="bottom">seen samples</th>
+<th valign="bottom">Schedule</th>
+<th valign="bottom">GPU Hours</th>
+<th valign="bottom">Estimated Cost</th>
 <th valign="bottom">zero-shot IN-1K</th>
 <th valign="bottom">model weight</th>
 <!-- TABLE BODY -->
 <tr><td align="left">H/14</td>
 <td align="center">LAION-2B</td>
-<td align="center">224x224</td>
-<td align="center">32</td>
-<td align="center">12.8B</td>
-<td align="center">78.6</td>
-<td align="center"><a href="https://drive.google.com/file/d/1H0ZNNvySDrZ2hmBrc9PrjdQP8YftwGFh/view?usp=sharing">download</td>
+<td align="center">12.8B@84 + 512M@224 + 128M@336</td>
+<td align="center">8640</td>
+<td align="center">$13613</td>
+<td align="center">79.1</td>
+<td align="center"><a href="https://drive.google.com/file/d/1EiQpLvL51AXEFzJ33e6z58N0dQ83CSux/view?usp=sharing">PyTorch / <a href="https://drive.google.com/file/d/1IQ0BgWGy0Tsui9iK_wdVifFKc3NfC0BD/view?usp=sharing">JAX</td>
 <tr><td align="left">L/14</td>
 <td align="center">DataCOMP-1B</td>
-<td align="center">224x224</td>
-<td align="center">32</td>
-<td align="center">12.8B</td>
-<td align="center">79.7</td>
-<td align="center"><a href="https://drive.google.com/file/d/1oh9IFuX9pD0nd-m4Apl-Z9irX3N-G2_h/view?usp=sharing">download</td>
+<td align="center">12.8B@84 + 512M@224 +128M@336 </td>
+<td align="center">4520</td>
+<td align="center">$7124</td>
+<td align="center">80.3</td>
+<td align="center"><a href="https://drive.google.com/file/d/1Vpon6Dn0E3xDfyCIuOW1SPo9haKYvFiD/view?usp=sharing">PyTorch / <a href="https://drive.google.com/file/d/1yJD8p27HdZGK2DZ8x64uR6idl_QNkL7w/view?usp=sharing">JAX</td>
 <tr><td align="left">H/14</td>
 <td align="center">DataCOMP-1B</td>
-<td align="center">224x224</td>
-<td align="center">32</td>
-<td align="center">12.8B</td>
-<td align="center">81.5</td>
-<td align="center"><a href="https://drive.google.com/file/d/1Rpd157eay3t8_qsrnSHi_nWeGmhQGTvN/view?usp=sharing">download</td>
+<td align="center">12.8B@84 + 512M@224 + +128M@336</td>
+<td align="center">8580</td>
+<td align="center">$13613</td>
+<td align="center">81.8</td>
+<td align="center"><a href="https://drive.google.com/file/d/1oOACMg3MKXUpG-xn-UrqDWFVEIvenA-F/view?usp=sharing">PyTorch / <a href="https://drive.google.com/file/d/1t0k_5m3VVLRyThUjc4JQ_-z29hABuFBV/view?usp=sharing">JAX</td>
 </tbody></table>
 
+Our CLIPA-v2’s GPU hour is estimated using an 8-A100 80GB GPU machine on Google Cloud. 
+The corresponding training cost is estimated based on 80GB A100’s cloud pricing.
 
 
 ## Introduction
