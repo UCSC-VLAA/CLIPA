@@ -48,7 +48,7 @@ enable training with fewer image/text tokens while maintaining competitive perfo
 <tr><td align="left">H/14</td>
 <td align="center">DataCOMP-1B</td>
 <td align="center">12.8B@84 + 512M@224 + +128M@336</td>
-<td align="center">8580</td>
+<td align="center">8640</td>
 <td align="center">$13613</td>
 <td align="center">81.8</td>
 <td align="center"><a href="https://drive.google.com/file/d/1oOACMg3MKXUpG-xn-UrqDWFVEIvenA-F/view?usp=sharing">PyTorch / <a href="https://drive.google.com/file/d/1t0k_5m3VVLRyThUjc4JQ_-z29hABuFBV/view?usp=sharing">JAX</td>

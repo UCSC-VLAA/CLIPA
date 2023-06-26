@@ -125,7 +125,7 @@ Try our example testing scripts for evaluation.
 <tr><td align="left">H/14</td>
 <td align="center">LAION-2B</td>
 <td align="center">12.8B@84 + 512M@224 + 128M@336</td>
-<td align="center">8580</td>
+<td align="center">8640</td>
 <td align="center">$13616</td>
 <td align="center">79.1</td>
 <td align="center"><a href="https://drive.google.com/file/d/1EiQpLvL51AXEFzJ33e6z58N0dQ83CSux/view?usp=sharing">download</td>
@@ -160,7 +160,7 @@ Try our example testing scripts for evaluation.
 <tr><td align="left">H/14</td>
 <td align="center">DataCOMP-1B</td>
 <td align="center">12.8B@84 + 512M@224 + 128M@336</td>
-<td align="center">8580</td>
+<td align="center">8640</td>
 <td align="center">$13616</td>
 <td align="center">81.8</td>
 <td align="center"><a href="https://drive.google.com/file/d/1oOACMg3MKXUpG-xn-UrqDWFVEIvenA-F/view?usp=sharing">download</td>
