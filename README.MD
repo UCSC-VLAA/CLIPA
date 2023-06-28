@@ -16,7 +16,7 @@ enable training with fewer image/text tokens while maintaining competitive perfo
 <br>
 
 <p align="center">
-  <img src="clipa_jax/figs/CLIPA_v2_teaser" width="1080">
+  <img src="clipa_jax/figs/CLIPA_v2_teaser.png" width="1080">
 </p>
 
 
