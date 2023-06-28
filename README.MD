@@ -2,14 +2,6 @@
 
 This repo contains official Pytorch and JAX implementation of **CLIPA** in our paper: [An Inverse Scaling Law for CLIP Training](https://arxiv.org/abs/2305.07017) 
 
-
-## 📰 News
-
-**[2023.6.16]**  We release CLIPA-v2. Compared to the prior best publicly available CLIP model, our CLIPA-v2 can be trained significantly faster and yields stronger performance. Our best model is H/14@336x336 on DataComp-1B with an accuracy of 81.8, and its estimated training cost is <$15k! 
-[[Model Zoo](clipa_jax/README.MD)] [[Tech Report](CLIPA_V2.pdf)]  <br>
-
-
-
 <p align="center">
   <img src="clipa_jax/figs/inverse_scaling_law.png" width="1080">
 Overview of the Inverse Scaling Law: larger image/text encoders
@@ -18,7 +10,15 @@ enable training with fewer image/text tokens while maintaining competitive perfo
 
 
 
-## Main Results
+## 📰 News
+
+**[2023.6.16]**  We release [CLIPA-v2](https://arxiv.org/abs/2306.15658). Compared to the prior best publicly available CLIP model, our CLIPA-v2 can be trained significantly faster and yields stronger performance. Our best model is H/14@336x336 on DataComp-1B with an accuracy of 81.8, and its estimated training cost is <$15k! 
+<br>
+
+<p align="center">
+  <img src="clipa_jax/figs/CLIPA_v2_teaser" width="1080">
+</p>
+
 
 <table><tbody>
 <!-- START TABLE -->
@@ -95,10 +95,16 @@ We are also very grateful that this work is supported by a gift from Open Philan
 ## Citation
 
 ```
-@article{li2023inverse,
+@article{li2023clipa,
       title={An Inverse Scaling Law for CLIP Training}, 
       author={Xianhang Li and Zeyu Wang and Cihang Xie},
       journal={arXiv preprint arXiv:2305.07017},
+      year={2023},
+}
+@article{li2023clipav2,
+      title={CLIPA-v2: Scaling CLIP Training with 81.1% Zero-shot ImageNet Accuracy within a $10,000 Budget; An Extra $4,000 Unlocks 81.8% Accuracy}, 
+      author={Xianhang Li and Zeyu Wang and Cihang Xie},
+      journal={arXiv preprint arXiv:2306.15658},
       year={2023},
 }
 ```
