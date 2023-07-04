@@ -469,7 +469,7 @@ class VisionTransformer(nn.Module):
     def set_grad_checkpointing(self, enable=True):
         self.transformer.grad_checkpointing = enable
 
-    def _global_pool(self, x: torch.Tensor, include_cls=False) -> Tuple[torch.Tensor, torch.Tensor]:
+    def _global_pool(self, x: torch.Tensor, include_cls=True) -> Tuple[torch.Tensor, torch.Tensor]:
         if self.global_average_pool and not include_cls:
             return x[:, 1:].mean(dim=1), x[:, 1:]
         elif self.global_average_pool and include_cls:
