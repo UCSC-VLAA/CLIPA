@@ -24,7 +24,7 @@ from ml_collections import ConfigDict
 def get_config(arg=None):
   """The base configuration."""
   arg = bvcc.parse_arg(
-      arg,  res=70, runlocal=False, batchsize=65536,  token_len=8, txt='bert_base', img='H/16',
+      arg,  res=70, runlocal=False, batchsize=65536,  token_len=8, txt='bert_base', img='H/14',
       init='', img_head=True, load_pretrain=False)
   img_name, img_init = common.inits[arg.img]
   txt_name, txt_init = common.inits[arg.txt]
