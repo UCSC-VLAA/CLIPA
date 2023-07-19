@@ -42,6 +42,14 @@ After pre-training, you can fine-tune the model by running:
 ```
 bash scripts/fine_tuning.sh
 ```
+## Pre-trained weights
+| Model | image | text | Data        | Schedule | Top1 | weights                                                                                        |
+|-------|-------|------|-------------|---------------|------|------------------------------------------------------------------------------------------------|
+| H-14  | 70    | 8    | LAION-2B    | 12.8B         | 70.1 | [weight](https://drive.google.com/drive/folders/1krPlh7Btsc7XgqMHaxjJVVZQLFoSJO3Z?usp=sharing) |
+| H-14  | 84    | 8    | LAION-2B    | 12.8B         | 72.1 | [weight](https://drive.google.com/drive/folders/1xSxdNZFg2Vhun5898fQdDxGG8c8ex-wm?usp=sharing) |
+| L-14  | 84    | 8    | DataCOMP-1B | 12.8B         | 72.7 | [weight](https://drive.google.com/drive/folders/1imPeZKbLjjRVGI_vo-2FQ1KdTQ10EAJN?usp=sharing) |
+| H-14  | 84    | 8    | DataCOMP-1B | 12.8B         | 75.6 | [weight](https://drive.google.com/drive/folders/19utZrXiCnlFBvLljhCsymH969-WvGf4c?usp=sharing) |
+
 
 ## Results
 <table><tbody>
