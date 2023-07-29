@@ -8,10 +8,11 @@
         "global_average_pool": true
     },
     "text_cfg": {
-        "context_length": 8,
+        "context_length": 16,
         "vocab_size": 49408,
         "width": 768,
         "heads": 12,
-        "layers": 12
+        "layers": 12,
+        "text_mask": "syntax"
     }
 }
