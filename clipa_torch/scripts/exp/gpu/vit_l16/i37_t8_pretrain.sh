@@ -14,7 +14,7 @@ TORCH_CUDNN_V8_API_ENABLED=1 TFDS_PREFETCH_SIZE=8192 torchrun --nproc_per_node 8
     --pos-embed 'sin_cos_2d' \
     --epochs=6 \
     --workers=6 \
-    --model ViT-L-16-CL8-GAP \
+    --model ViT-L-16-CL8-Syntax-GAP \
     --precision 'amp_bf16' \
     --ddp-static-graph \
     --local-loss \
