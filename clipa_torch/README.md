@@ -86,7 +86,7 @@ and fine-tune the pre-trained checkpoint with
 bash scripts/exp/gpu/vit_l16/i37_t8_finetune.sh
 ```
 - Remember to change the path to dataset and checkpoint to your own path. You have to use the imagenet validation path `/path/to/imagenet/val` if you are reading from disk! 
-- The training time is ~2 days for pre-training and ~1 day for fine-tuning on an A100 eight-GPU machine.
+- The training time is ~3 days for pre-training and ~1 day for fine-tuning on an A100 eight-GPU machine.
 - Note that to ensure proper shuffling diversity, each worker maintains a TFDS shuffling buffer and prefetch buffer. 
 This significantly increase cpu memory burden. If you observe cpu out-of-memory issue, try tune down the values of `TFDS_PREFETCH_SIZE` and `TFDS_SHUFFLE_SIZE`.
 

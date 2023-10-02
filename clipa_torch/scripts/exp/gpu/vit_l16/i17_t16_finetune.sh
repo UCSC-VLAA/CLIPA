@@ -1,10 +1,3 @@
-#python3 -c "import wandb; print(wandb.util.generate_id())"
-
-# control log_steps so that however batch size changes, it logs every 2 * 1024 * 1024 samples
-# full image finetune for 4000 steps
-# use resize_pos_embed(state_dict, model) in factory.py
-# finetuned on gpu, so grad checkpoint, amp_bf16 and static graph is enabled
-
 TORCH_CUDNN_V8_API_ENABLED=1 TFDS_PREFETCH_SIZE=8192 torchrun --nproc_per_node 8 -m training.main \
     --save-frequency 1 \
     --save-most-recent \

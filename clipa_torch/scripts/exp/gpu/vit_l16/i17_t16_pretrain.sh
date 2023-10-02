@@ -1,5 +1,3 @@
-#python3 -c "import wandb; print(wandb.util.generate_id())"
-
 TORCH_CUDNN_V8_API_ENABLED=1 TFDS_PREFETCH_SIZE=8192 torchrun --nproc_per_node 8 -m training.main \
     --save-frequency 1 \
     --save-most-recent \
