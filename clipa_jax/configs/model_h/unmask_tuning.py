@@ -57,6 +57,13 @@ def get_config(arg=None):
   config.cpu_unit8 = True
   config.mask_ratio = 0.0
 
+  config.lora = True
+  # partitioning
+  config.partitioning = {}
+  config.partitioning.num_partitions = 1
+  config.partitioning.partition_states = False
+
+
   # Model section
   config.model_name = 'two_towers'
   config.model_load = {}
@@ -65,7 +72,7 @@ def get_config(arg=None):
   config.model.text_model = 'text_transformer'
   config.model.image = ConfigDict({
       'variant': img_name,
-      'pool_type': 'gap',
+      'pool_type': 'tok',
       'posemb': 'sincos2d',
       'remat_policy': 'actcp', #gradient checkpointing
       'head_zeroinit': False,
@@ -86,11 +93,11 @@ def get_config(arg=None):
   # optimizer config
   config.optax_name = 'scale_by_adam'
   config.total_steps = int(131072000 // arg.batchsize)  # seen_samples // batchsize to get the number of steps
-  config.lr = 8e-7 * (arg.batchsize // 256)
+  config.lr = 4e-7 * (arg.batchsize // 256)
   config.wd = 0.2
   warmup_steps = int(26214400 // arg.batchsize) # seen_samples // batchsize to get the number of steps
   config.schedule = [
-      ('.*', dict(decay_type='cosine', warmup_steps=warmup_steps, min_lr=0, max_lr=8e-7 * (arg.batchsize // 256))),
+      ('.*', dict(decay_type='cosine', warmup_steps=warmup_steps, min_lr=0, max_lr=4e-7 * (arg.batchsize // 256))),
   ]
 
   config.optax = dict(mu_dtype='bfloat16',  b1=0.9,  b2=0.95)
@@ -106,8 +113,8 @@ def get_config(arg=None):
       wandb_offline=False,
       resume=False,
       debug_data=False,
-      project='clip_image_scaling_unmask_tuning',
-      experiment=f'B16_32k_{arg.res}_{arg.token_len}_tok_sin2d_lr8e',
+      project='clip_scaling_unmask_tuning',
+      experiment=f'H14_32k_{arg.res}_{arg.token_len}_tok_sin2d_lr8e',
       entity='[your wandb login name]'
   )
   config.save_ckpt = True

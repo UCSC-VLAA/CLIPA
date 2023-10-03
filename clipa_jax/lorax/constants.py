@@ -1,0 +1,2 @@
+LORA_FREEZE = 0
+LORA_FULL = -1

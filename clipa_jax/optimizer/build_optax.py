@@ -221,7 +221,7 @@ def make(config, params, *, sched_kw):
     tx_func = operator.attrgetter(config.optax_name)(optax)
     opt_txs = [optax.masked(
         tx_func(**config.get("optax", {})), not_frozen_mask)]
-    assert "optim" not in config, "Deprecated option, use config.optax."
+    assert "optimizer" not in config, "Deprecated option, use config.optax."
 
     # Learning rate multipliers. Defaults to 1.0.
     lr_mult_txs = [optax.scale(config.lr)]

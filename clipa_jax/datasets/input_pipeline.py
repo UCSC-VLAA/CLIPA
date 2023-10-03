@@ -19,6 +19,7 @@
 import collections
 import functools
 import itertools
+import logging
 import math
 
 import datasets.core as ds_core
@@ -65,8 +66,43 @@ def make_for_train(
             data = data.map(mix_fn, num_parallel_calls=num_parallel_calls)
     return data.prefetch(prefetch)
 
+feature_description = {
+    "txt": tf.io.FixedLenFeature([], tf.string),
+    "jpg": tf.io.FixedLenFeature([], tf.string),
+    "height": tf.io.FixedLenFeature([], tf.int64),
+    "width": tf.io.FixedLenFeature([], tf.int64),
+    "key": tf.io.FixedLenFeature([], tf.string),
+}
+def parse_laion_example(example_proto):
+    example = tf.io.parse_single_example(example_proto, feature_description)
+    #example["image"] = example.pop("jpg")
+    # the image id in the dataset (not continuous, due to download failures)
+    example["image_id"] = tf.strings.to_number(example.pop("key"), out_type=tf.int64)
+    return example
 
-def training(input_config):
+def t5x_dataset(data_layout, config):
+        shard_id = data_layout.shard_id
+        num_shards = data_layout.num_shards
+
+        logging.info(f"laion data path{config.data.data_dir}")
+        filenames = tf.io.gfile.glob(config.data.data_dir + "/*.tfrecord-*")
+        filenames.sort()
+
+        train_records = len(filenames)
+        split_size = train_records // num_shards
+        start = shard_id * split_size
+        split = "train[{}:{}]".format(start, start + split_size)
+        filenames = filenames[start : start + split_size]
+
+        # ----------------------------------------
+        logging.info("Split: {} / {}".format(split, train_records))
+        # ----------------------------------------
+
+        ds = tf.data.TFRecordDataset(filenames).map(parse_laion_example)
+        return ds
+
+
+def training(input_config, data_layout=None):
     """Reads the data from a single dataset, or mixes it from multiple.
 
     The data is read either from one or mixed from multiple datasets, depending
@@ -85,6 +121,7 @@ def training(input_config):
     # Handle separately the common case when no mixing happens.
     if isinstance(input_config.data.get("name"), str):
         train_data = ds_core.get(**input_config.data)
+        #train_data = t5x_dataset(data_layout, input_config)
         train_ds = make_for_train(
             data=train_data.get_tfdata(ordered=False),
             batch_size=batch_size,
@@ -202,38 +239,41 @@ def prefetch_iterator(it, n):
         enqueue(1)
 
 
-def shard_and_put(x, shard=True, put=True, config=None):
+def shard_and_put(x, shard=True, put=True, config=None, partitioner=None):
     # pylint: disable=protected-access
     x = x._numpy()
-    # if len(x.shape) < 2:
-    #    if config:
-    #      if config.get('noun_sample', False):
-    #          from transforms.bert_ops import  tokenizer_nltk
-    #          tokenizer_nltk = functools.partial(tokenizer_nltk, vocab_path=config.vocab_path,
-    #                                             sample_length=config.text_length)
-    #          import numpy as np
-    #          out = np.zeros(shape=(x.shape[0], config.text_length), dtype=np.int32)
-    #          # from multiprocessing import Pool
-    #          # try:
-    #          #     pool = Pool(24)  # on 8 processors
-    #          #     out = pool.map(tokenizer_nltk, x.tolist())
-    #          # finally:  # To make sure processes are closed in the end, even if errors happen
-    #          #     pool.close()
-    #          #     pool.join()
-    #          # out = tf.concat(out, axis=0)
-    #          # out = out._numpy()
-    #          # print(out)
-    #          # exit()
-    #          for i in range(x.shape[0]):
-    #              token_id = tokenizer_nltk(x[i])
-    #              out[i] = token_id.numpy()
-    #          x = out
 
     if shard:
         x = einops.rearrange(x, "(d l) ... -> d l ...",
                              d=jax.local_device_count())
     if shard and put:  # Only works for pmap (for now).
         x = jax.device_put_sharded(list(x), flax_utils._pmap_device_order())
+
+    if config.partitioning.partition_states:
+        from jax.experimental import multihost_utils
+        device_input = multihost_utils.host_local_array_to_global_array(
+            x.reshape((-1,) + x.shape[1:]), partitioner._mesh, partitioner.data_partition_spec)
+        # _, model_re =partitioner._mesh.devices.shape
+        # device_ids = partitioner._mesh.devices[jax.process_index()*jax.local_device_count()//model_re:(jax.process_index()+1)*jax.local_device_count()//model_re]
+        #
+        #
+        # x = x.reshape((-1,) + x.shape[1:])
+        # bz = x.shape[0]
+        #
+        # x = einops.rearrange(x, "(d l) ... -> d l ...",
+        #                      d=jax.local_device_count()//model_re)
+        #
+        # from jax.sharding import PositionalSharding
+        # shard_device = PositionalSharding(device_ids)
+        # shard_device = shard_device.replicate(axis=1, keepdims=True)
+        #
+        # print(shard_device)
+        # device_input = jax.device_put(x, shard_device)
+        #
+        # print(device_input.shape)
+        # exit()
+        return  device_input
+
     return x
     # pylint: enable=protected-access
 
@@ -243,11 +283,13 @@ def start_input_pipeline(
         n_prefetch=1,
         shard=True,
         mix_fn=None,
+         partitioner=None,
         config=None):
     fn = functools.partial(
         shard_and_put,
         shard=shard,
         put=n_prefetch,
+        partitioner=partitioner,
         config=config)
     if mix_fn:
         it = (jax.tree_util.tree_map(fn, mix_fn(elem)) for elem in iter(data))

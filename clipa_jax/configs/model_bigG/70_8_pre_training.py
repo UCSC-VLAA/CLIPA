@@ -16,7 +16,6 @@
 # limitations under the License.
 
 # pylint: disable=line-too-long
-
 import configs.common as bvcc
 import configs.clip_common as common
 from ml_collections import ConfigDict
@@ -25,7 +24,7 @@ from ml_collections import ConfigDict
 def get_config(arg=None):
   """The base configuration."""
   arg = bvcc.parse_arg(
-      arg,  res=224, runlocal=False, batchsize=32768,  token_len=32, txt='bert_base', img='L/16',
+      arg,  res=70, runlocal=False, batchsize=65536,  token_len=8, txt='bert_base', img='G/14',
       init='', img_head=True, load_pretrain=False)
   img_name, img_init = common.inits[arg.img]
   txt_name, txt_init = common.inits[arg.txt]
@@ -45,10 +44,10 @@ def get_config(arg=None):
   else:
     vocab_path = f'{txt_init}/vocab.txt'
   tokenizer = lambda inkey: (
-      f'bert_tokenize(inkey="{inkey}", max_len={arg.token_len}, '
+      f'noun_tokenize(inkey="{inkey}", max_len={arg.token_len}, ' #syntax sampling for better reduction quality
       f'vocab_path="{vocab_path}")')
   config.input.pp = pp_eval = (
-      f'inception_crop(inkey="jpg", size={arg.res}, area_min=40, method="bilinear", antialias=True)|'
+      f'inception_crop(inkey="jpg", size={arg.res}, area_min=40, method="bilinear", antialias=True)|simclr_jitter_gray(jitter_strength=0.4)'
       f'|flatten|{tokenizer("txt")}|keep("image", "labels")'
   )
   config.pp_modules = [
@@ -65,54 +64,57 @@ def get_config(arg=None):
   config.model.text_model = 'text_transformer'
   config.model.image = ConfigDict({
       'variant': img_name,
-      'pool_type': 'tok',
+      'pool_type': 'gap',
       'posemb': 'sincos2d',
-      'remat_policy': 'actcp', #gradient checkpointing
+      'remat_policy': 'actcp',
       'head_zeroinit': False,
   })
   config.model.text = ConfigDict({
       'variant': img_name,
       'pool_type': 'last',
+      'remat_policy': 'actcp',
       'head_zeroinit': False,
   })
   config.model.temperature_init = 1/0.07
-  dim = {'T': 192, 'S':384, 'B': 512, 'L': 768}[arg.img[0]]
+  dim = {'T': 192, 'S':384, 'B': 512, 'L': 768, 'H': 1024, 'g':1280, 'G':1280}[arg.img[0]]
   config.model.out_dim = (dim if arg.img_head else None, dim)  # (image_out_dim, text_out_dim)
 
-  # load pre-trained ckpt
-  config.masked_init = "[your pre-trained weight lcoation]"
 
   # optimizer config
+  imagenet_samples = 1281167
+  vitual_imagenet_epoch = 10000
+  total_seen_samples = imagenet_samples * vitual_imagenet_epoch
+
   config.optax_name = 'scale_by_adam'
-  config.total_steps = int(131072000 // arg.batchsize)  # seen_samples // batchsize to get the number of steps
-  config.lr = 4e-7 * (arg.batchsize // 256)
+  config.total_steps = int(total_seen_samples // arg.batchsize)  # seen_samples // batchsize to get the number of steps
+  config.lr = 4e-6 * (arg.batchsize // 256)
   config.wd = 0.2
-  warmup_steps = int(26214400 // arg.batchsize) # seen_samples // batchsize to get the number of steps
+  warmup_steps = 3200 # for 64K huge, smaller warmup will collaps
   config.schedule = [
-      ('.*', dict(decay_type='cosine', warmup_steps=warmup_steps, min_lr=0, max_lr=4e-7 * (arg.batchsize // 256))),
+      ('.*', dict(decay_type='cosine', warmup_steps=warmup_steps, min_lr=0, max_lr=4e-6 * (arg.batchsize // 256))),
   ]
 
-  config.optax = dict(mu_dtype='float32',  b1=0.9,  b2=0.95)
+  config.optax = dict(mu_dtype='bfloat16',  b1=0.9,  b2=0.95) #save memeroy and 10% faster
   config.loss_use_global_batch = True
   config.local_loss = True
-
-  config.lora = True
-  # partitioning
+  config.lora = False
   config.partitioning = {}
-  config.partitioning.num_partitions = 1
-  config.partitioning.partition_states = False
-
+  config.partitioning.num_partitions = 2
+  config.partitioning.partition_states = True
+  config.partitioning.params_on_devices = True
+  config.partitioning.activation_partitioning_dims = 2
+  config.partitioning.parameter_partitioning_dims = 2
 
   # log section
   config.log_training_steps = 50
-  config.ckpt_steps = 1000
+  config.ckpt_steps = 2000
   config.wandb = dict(
       log_wandb=True,
       wandb_offline=False,
       resume=False,
       debug_data=False,
-      project='clip_image_scaling_unmask_tuning',
-      experiment=f'L16_32k_{arg.res}_{arg.token_len}_tok_sin2d_lr8e',
+      project='clip_scaling',
+      experiment=f'{arg.img[0]}_{arg.batchsize}_{arg.res}_{arg.token_len}_gap_sin2d',
       entity='xianhangli'
   )
   config.save_ckpt = True
@@ -123,7 +125,7 @@ def get_config(arg=None):
   eval_common = dict(
       type='proj.image_text.contrastive',
       use_global_batch=config.loss_use_global_batch,
-      log_steps=1000,
+      log_steps=4000,
   )
 
   config.evals = {}

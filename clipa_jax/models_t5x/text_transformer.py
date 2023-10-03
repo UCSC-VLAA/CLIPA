@@ -36,6 +36,9 @@ from flax.linen.linear import DenseGeneral
 
 from flax.linen.module import compact
 from flax.linen.module import merge_param
+
+import t5x.layers
+
 Array = Any
 
 
@@ -68,12 +71,12 @@ def get_posemb(
         cls_token=False):
     if typ == "learn":
         num_token = 1 if cls_token else 0
-        return self.param(name,
+        return  t5x.layers.param_with_axes(name,
                           # nn.initializers.variance_scaling(scale=0.3072,
                           # distribution="truncated_normal", mode='fan_out'), #
                           # timm trunc
                           nn.initializers.normal(stddev=0.01),
-                          (1, max_len, width), dtype)
+                          (1, max_len, width), dtype, axes=("_null0",))
     elif typ == "sincos1d":
         return posemb_sincos_1d(
             max_len,
@@ -100,105 +103,20 @@ class MlpBlock(nn.Module):
             kernel_init=self.fc_init,
             bias_init=nn.initializers.zeros,
         )
-
+      #  x = t5x.layers.with_sharding_constraint(x, ("batch", "length", "embed"))
         n, l, d = x.shape  # pylint: disable=unused-variable
-        x = nn.Dense(self.mlp_dim or 4 * d, **inits)(x)
-       # x = nn.gelu(x, approximate=False)
+        x = t5x.layers.Dense(features=self.mlp_dim or 4 * d, **inits, kernel_axes=("embed", "mlp"),)(x)
         x = nn.gelu(x, approximate=True)
         x = nn.Dropout(rate=self.dropout)(x, deterministic)
-        x = nn.Dense(d,
-                     kernel_init=self.proj_init,
-                     bias_init=nn.initializers.zeros,)(x)
+        x = nn.partitioning.with_sharding_constraint(x, ("batch", "length", "mlp"))
+        x =  t5x.layers.Dense(
+            features=d,
+            kernel_init=self.proj_init,
+            bias_init=nn.initializers.zeros,
+            kernel_axes=("mlp", "embed"),)(x)
+      #  x = t5x.layers.with_sharding_constraint(x, ("batch", "length", "embed"))
         return x
 
-
-class MultiHeadDotProductAttention(nn.MultiHeadDotProductAttention):
-
-    attn_kernel_init: Callable = nn.initializers.normal(stddev=0.01)
-    proj_kernel_init: Callable = nn.initializers.normal(stddev=0.01)
-
-    @compact
-    def __call__(self,
-                 inputs_q: Array,
-                 inputs_kv: Array,
-                 mask: Optional[Array] = None,
-                 deterministic: Optional[bool] = None):
-        """Applies multi-head dot product attention on the input data.
-
-        Projects the inputs into multi-headed query, key, and value vectors,
-        applies dot-product attention and project the results to an output vector.
-
-        Args:
-          inputs_q: input queries of shape
-            `[batch_sizes..., length, features]`.
-          inputs_kv: key/values of shape
-            `[batch_sizes..., length, features]`.
-          mask: attention mask of shape
-            `[batch_sizes..., num_heads, query_length, key/value_length]`.
-            Attention weights are masked out if their corresponding mask value
-            is `False`.
-          deterministic: if false, the attention weight is masked randomly
-            using dropout, whereas if true, the attention weights
-            are deterministic.
-
-        Returns:
-          output of shape `[batch_sizes..., length, features]`.
-        """
-        features = self.out_features or inputs_q.shape[-1]
-        qkv_features = self.qkv_features or inputs_q.shape[-1]
-        assert qkv_features % self.num_heads == 0, (
-            'Memory dimension must be divisible by number of heads.')
-        head_dim = qkv_features // self.num_heads
-
-        dense = functools.partial(DenseGeneral,
-                                  axis=-1,
-                                  dtype=self.dtype,
-                                  param_dtype=self.param_dtype,
-                                  features=(self.num_heads, head_dim),
-                                  kernel_init=self.attn_kernel_init,
-                                  bias_init=self.bias_init,
-                                  use_bias=self.use_bias,
-                                  precision=self.precision)
-        # project inputs_q to multi-headed q/k/v
-        # dimensions are then [batch..., length, n_heads, n_features_per_head]
-        query, key, value = (dense(name='query')(inputs_q),
-                             dense(name='key')(inputs_kv),
-                             dense(name='value')(inputs_kv))
-
-        # During fast autoregressive decoding, we feed one position at a time,
-        # and cache the keys and values step by step.
-        dropout_rng = None
-        if self.dropout_rate > 0.:  # Require `deterministic` only if using dropout.
-            m_deterministic = merge_param('deterministic', self.deterministic,
-                                          deterministic)
-            if not m_deterministic:
-                dropout_rng = self.make_rng('dropout')
-        else:
-            m_deterministic = True
-
-        # apply attention
-        x = self.attention_fn(
-            query,
-            key,
-            value,
-            mask=mask,
-            dropout_rng=dropout_rng,
-            dropout_rate=self.dropout_rate,
-            broadcast_dropout=self.broadcast_dropout,
-            deterministic=m_deterministic,
-            dtype=self.dtype,
-            precision=self.precision)  # pytype: disable=wrong-keyword-args
-        # back to the original inputs dimensions
-        out = DenseGeneral(features=features,
-                           axis=(-2, -1),
-                           kernel_init=self.proj_kernel_init,
-                           bias_init=self.bias_init,
-                           use_bias=self.use_bias,
-                           dtype=self.dtype,
-                           param_dtype=self.param_dtype,
-                           precision=self.precision,
-                           name='out')(x)
-        return out
 
 
 class Encoder1DBlock(nn.Module):
@@ -218,19 +136,21 @@ class Encoder1DBlock(nn.Module):
             'fc': (2 * width) ** -0.5
         }
         out = {}
-        y = nn.LayerNorm()(x)
-        y = out["sa"] = MultiHeadDotProductAttention(
+        x = nn.partitioning.with_sharding_constraint(x, ("batch", "length", "embed"))
+        y = t5x.layers.LayerNorm(axes=("embed",))(x)
+        y = nn.partitioning.with_sharding_constraint(y, ("batch", "length", "embed"))
+        y = out["sa"] = t5x.layers.MultiHeadDotProductAttention(
             num_heads=self.num_heads,
-            attn_kernel_init=nn.initializers.normal(stddev=init_std['attn']),
-            proj_kernel_init=nn.initializers.normal(stddev=init_std['proj']),
+            qkv_kernel_init=nn.initializers.normal(stddev=init_std['attn']),
+            out_kernel_init=nn.initializers.normal(stddev=init_std['proj']),
             bias_init=nn.initializers.zeros,
-            deterministic=deterministic,
         )(y, y)
         y = nn.Dropout(rate=self.dropout)(y, deterministic)
         y = DropPath(dropout_prob=self.drop_path)(y, deterministic)
         x = out["+sa"] = x + y
-
-        y = nn.LayerNorm()(x)
+        x = nn.partitioning.with_sharding_constraint(x, ("batch", "length", "embed"))
+        y =t5x.layers.LayerNorm(axes=("embed",))(x)
+        y = nn.partitioning.with_sharding_constraint(y, ("batch", "length", "embed"))
         y = out["mlp"] = MlpBlock(
             mlp_dim=self.mlp_dim, dropout=self.dropout,
             fc_init=nn.initializers.normal(stddev=init_std['fc']),
@@ -239,6 +159,7 @@ class Encoder1DBlock(nn.Module):
         y = nn.Dropout(rate=self.dropout)(y, deterministic)
         y = DropPath(dropout_prob=self.drop_path)(y, deterministic)
         x = out["+mlp"] = x + y
+        x = nn.partitioning.with_sharding_constraint(x, ("batch", "length", "embed"))
         return x, out
 
 from flax.linen.partitioning import remat
@@ -304,11 +225,13 @@ class _Model(nn.Module):
     def __call__(self, text, *, train=False, mask_ratio=0):
         out = {}
 
-        embedding = nn.Embed(
+        embedding = t5x.layers.Embed(
             num_embeddings=self.vocab_size,
             features=self.width,
             embedding_init=nn.initializers.normal(
-                stddev=0.02))
+                stddev=0.02),
+            axes=["classes", "embed"],  # do not use 'vocab'
+        )
         x = out['embedded'] = embedding(text)
 
         n, l, d = x.shape  # pylint: disable=unused-variable
@@ -330,7 +253,7 @@ class _Model(nn.Module):
         x, out["encoder"] = encoder_blocks(
             x, deterministic=not train)
 
-        x = out["norm"] = nn.LayerNorm(name="encoder_norm")(x)
+        x = out["norm"] = t5x.layers.LayerNorm(name="encoder_norm", axes=("embed",))(x)
 
         if self.pool_type == "gap":
             x = out["head_input"] = jnp.mean(x[:, 1:], axis=1)
@@ -343,13 +266,14 @@ class _Model(nn.Module):
 
         if self.num_classes:
 
-            head = nn.Dense(
-                self.num_classes,
+            head = t5x.layers.Dense(
+                features=self.num_classes,
                 name="head",
                 use_bias=False,
                 kernel_init=nn.initializers.normal(
-                    stddev=self.width ** -0.5))
-
+                    stddev=self.width ** -0.5),
+                kernel_axes=("_null0", "_null1"),)
+              #  kernel_axes = ("_null0", "embed"),)
             x = out["logits"] = head(x)
 
         return x, out
@@ -399,10 +323,10 @@ def decode_variant(variant):
     return {
         # pylint:disable=line-too-long
         # Reference: Table 2 of https://arxiv.org/abs/2106.04560.
-        "width": {"Ti": 192, "S": 384, "M": 512, "B": 512, "L": 768, "H": 1024, "g": 1280, "G": 1664, "e": 1792}[v],
-        "depth": {"Ti": 12, "S": 12, "M": 12, "B": 12, "L": 12, "H": 24, "g": 36, "G": 48, "e": 56}[v],
-        "mlp_dim": {"Ti": 768, "S": 1536, "M": 2048, "B": 2048, "L": 3072, "H": 4096, "g": 5120, "G": 8192, "e": 15360}[v],
-        "num_heads": {"Ti": 3, "S": 6, "M": 8, "B": 8, "L": 12, "H": 16, "g": 16, "G": 16, "e": 16}[v],
+        "width": {"Ti": 192, "S": 384, "M": 512, "B": 512, "L": 768, "H": 1024, "g": 1280, "G": 1280, "e": 1792}[v],
+        "depth": {"Ti": 12, "S": 12, "M": 12, "B": 12, "L": 12, "H": 24, "g": 32, "G": 32, "e": 56}[v],
+        "mlp_dim": {"Ti": 768, "S": 1536, "M": 2048, "B": 2048, "L": 3072, "H": 3072, "g": 5120, "G": 5120, "e": 15360}[v],
+        "num_heads": {"Ti": 3, "S": 6, "M": 8, "B": 8, "L": 12, "H": 16, "g": 20, "G": 20, "e": 16}[v],
         # pylint:enable=line-too-long
 
     }

@@ -49,12 +49,14 @@ import optax
 import tensorflow as tf
 tf.compat.v1.enable_eager_execution()
 # prepare config
-from helpers.utils import  save_device_memory_profile_to_gcs
 
 import jax.profiler
 jax.profiler.start_server(9999)
 os.makedirs('memory_profile', exist_ok=True)
 
+from lorax import simple_spec, init_lora, lora, LORA_FULL, LORA_FREEZE
+from lorax import merge_params as lora_merge_para
+from helpers.utils import  save_device_memory_profile_to_gcs
 
 
 try:
@@ -235,16 +237,59 @@ def main(argv):
         metric.measure("num_params", num_params)
 
     write_note(f"Initializing {config.optax_name} optimizer...")
-    tx, sched_fns = optimizer.make(config, params_cpu, sched_kw=dict(
-        total_steps=total_steps, batch_size=batch_size, data_size=ntrain_img))
+    # lora groups parameters
+    # This function defines a spec which tells lorax how each parameter should be handled
+    if config.get('lora', False):
+        def decision_fn(path, param):
+            # carefully enable this specific
+            if  't' == path :
+                 print(f'Fully finetuning param {path}')
+                 return LORA_FULL
+            if '/embedding/kernel' in path:
+                print(f'Freeze param {path}')
+                return LORA_FREEZE
+            if '/embedding' in path: # distinguish pos_embedding
+                print(f'Freeze param {path}')
+                return LORA_FREEZE
+            if 'cls' in path:
+                print(f'Fully finetuning param {path}')
+                return LORA_FULL
+            if 'head/kernel' in path:
+                print(f'Fully finetuning param {path}')
+                return LORA_FULL
+            if 'bias' in path:
+                print(f'Fully finetuning param {path}')
+                return LORA_FULL
+            if 'scale' in path:
+                print(f'Fully finetuning param {path}')
+                return LORA_FULL
+            if 'pos_embedding' in path:
+                 print(f'Fully finetuning param {path}')
+                 return LORA_FULL
+            dim = 8
+            print(f'Using LoRA with dim={dim} for param {path}')
+            return dim
 
-    # We jit this, such that the arrays are created on the CPU, not device[0].
-    opt_cpu = jax.jit(tx.init, backend="cpu")(params_cpu)
-    sched_fns_cpu = [jax.jit(sched_fn, backend="cpu")
-                     for sched_fn in sched_fns]
+        lora_spec = simple_spec(params_cpu,  decision_fn=decision_fn, tune_vectors=True)
+        freeze_paras, tune_params = init_lora(params_cpu, lora_spec, jax.random.PRNGKey(0))
+        params_merged_cpu = lora_merge_para(freeze_paras, tune_params, destructive=False)
+        if jax.process_index() == 0:
+            num_params = sum(p.size for p in jax.tree_leaves(tune_params))
+            parameter_overview.log_parameter_overview(
+                tune_params, msg="tuned params after enabling lora")
+            metric.measure("num_params", num_params)
+    else:
+        write_note(f"Initializing {config.optax_name} optimizer...")
+        tx, sched_fns = optimizer.make(config, params_cpu, sched_kw=dict(
+            total_steps=total_steps, batch_size=batch_size, data_size=ntrain_img))
+
+        # We jit this, such that the arrays are created on the CPU, not device[0].
+        opt_cpu = jax.jit(tx.init, backend="cpu")(params_cpu)
+        sched_fns_cpu = [jax.jit(sched_fn, backend="cpu")
+                         for sched_fn in sched_fns]
 
     @functools.partial(jax.pmap, axis_name="batch", donate_argnums=(0, 1))
-    def update_fn(params, opt, rng, batch):
+    def update_fn(freeze_params, tuneable_params, opt, rng, batch):
         """Update step."""
         #assert "mixup" not in config, "We still have to figure out mixup."
 
@@ -264,11 +309,19 @@ def main(argv):
         rng_model_local = jax.random.fold_in(
             rng_model, jax.lax.axis_index("batch"))
 
-        def loss_fn(params, images, labels):
+        def loss_fn(tuneable_params, freeze_params, images, labels):
 
-            zimg, ztxt, extras = model.apply({"params": params}, images, labels, train=True, mask_ratio=config.mask_ratio, rngs={
-                "dropout": rng_model_local, 'drop_path': rng_model_local, 'random_mask': rng_model_local})
+            if config.get("lora", False):
+                def forward(params, images, labels):
+                    return model.apply({"params": params}, images, labels, train=True, mask_ratio=config.mask_ratio, rngs={
+                        "dropout": rng_model_local, 'drop_path': rng_model_local, 'random_mask': rng_model_local})
 
+                lora_forward = lora(forward)
+                zimg, ztxt, extras = lora_forward((freeze_params, tuneable_params), images, labels)
+            else:
+                zimg, ztxt, extras = model.apply({"params": tuneable_params}, images, labels, train=True,
+                                                 mask_ratio=config.mask_ratio, rngs={
+                        "dropout": rng_model_local, 'drop_path': rng_model_local, 'random_mask': rng_model_local})
 
             if config.get("local_loss", False):
                 local_img, local_txt = zimg, ztxt
@@ -285,108 +338,24 @@ def main(argv):
 
 
             return l, {
-                "t": extras["t"],
-                "t/parameter": extras["t/parameter"],
+                #"t": extras["t"],
+                #"t/parameter": extras["t/parameter"],
                 "nimg": jnp.mean(extras["img/norm"]),
                 "ntxt": jnp.mean(extras["txt/norm"]),
                 **l_extras,
             }
 
+        # forward we need both freeze params and tunable paras move tunable paras into first argument
         (l, measurements), grads = jax.value_and_grad(
-            loss_fn, has_aux=True)(params, images, labels)
+            loss_fn, has_aux=True)(tuneable_params, freeze_params, images, labels)
         l, measurements, grads = jax.lax.pmean((l, measurements, grads),
                                                axis_name="batch")
-        updates, opt = tx.update(grads, opt, params)
-        params = optax.apply_updates(params, updates)
+        updates, opt = tx.update(grads, opt, tuneable_params)
+        tuneable_params = optax.apply_updates(tuneable_params, updates)
 
-        def record_grads(grads, measurements):
-            img_grads = grads['img']
-
-            if 'embedding' in img_grads.keys():
-                gs = jax.tree_leaves(
-                    optimizer.replace_frozen(
-                        config.schedule,
-                        img_grads['embedding'],
-                        0.))
-                measurements["l2_grad_embeding"] = jnp.sqrt(
-                    sum([jnp.vdot(g, g) for g in gs]))
-
-            if 'embedding1' in img_grads.keys():
-                gs = jax.tree_leaves(
-                    optimizer.replace_frozen(
-                        config.schedule,
-                        img_grads['embedding1'],
-                        0.))
-                measurements["l2_grad_embeding1"] = jnp.sqrt(
-                    sum([jnp.vdot(g, g) for g in gs]))
-            if 'embedding2' in img_grads.keys():
-                gs = jax.tree_leaves(
-                    optimizer.replace_frozen(
-                        config.schedule,
-                        img_grads['embedding2'],
-                        0.))
-                measurements["l2_grad_embeding2"] = jnp.sqrt(
-                    sum([jnp.vdot(g, g) for g in gs]))
-
-            if 'embedding3' in img_grads.keys():
-                gs = jax.tree_leaves(
-                    optimizer.replace_frozen(
-                        config.schedule,
-                        img_grads['embedding3'],
-                        0.))
-                measurements["l2_grad_embedding3"] = jnp.sqrt(
-                    sum([jnp.vdot(g, g) for g in gs]))
-
-            if 'embedding4' in img_grads.keys():
-                gs = jax.tree_leaves(
-                    optimizer.replace_frozen(
-                        config.schedule,
-                        img_grads['embedding4'],
-                        0.))
-                measurements["l2_grad_embedding4"] = jnp.sqrt(
-                    sum([jnp.vdot(g, g) for g in gs]))
-            if 'cls' in img_grads.keys():
-                gs = jax.tree_leaves(
-                    optimizer.replace_frozen(
-                        config.schedule,
-                        img_grads['cls'],
-                        0.))
-               # g = jax.tree_leaves(img_grads['cls'])
-                measurements["l2_grad_cls"] = jnp.sqrt(
-                    sum([jnp.vdot(g, g) for g in gs]))
-            if 'head' in img_grads.keys():
-                gs = jax.tree_leaves(
-                    optimizer.replace_frozen(
-                        config.schedule,
-                        img_grads['head'],
-                        0.))
-                #g = jax.tree_leaves(img_grads['head'])
-                measurements["l2_grad_head"] = jnp.sqrt(
-                    sum([jnp.vdot(g, g) for g in gs]))
-
-            if 'Transformer' in img_grads.keys():
-                for i in range(len(img_grads['Transformer'].keys())):
-                    block_name = 'encoderblock_' + str(i)
-                    gs = jax.tree_leaves(
-                        optimizer.replace_frozen(
-                            config.schedule,
-                            img_grads['Transformer'][block_name]['MlpBlock_0']['Dense_1']['kernel'],
-                            0.))
-                    #g =  jax.tree_leaves(img_grads['Transformer'][block_name]['MlpBlock_0']['Dense_1']['kernel'])
-                    measurements["l2_grad_" +
-                                 block_name] = jnp.sqrt(sum([jnp.vdot(g, g) for g in gs]))
-            return measurements
-
-        measurements = record_grads(grads, measurements)
-        gs = jax.tree_leaves(optimizer.replace_frozen(config.schedule, grads, 0.))
-        measurements["l2_grads"] = jnp.sqrt(sum([jnp.vdot(g, g) for g in gs]))
-        ps = jax.tree_leaves(params)
-        measurements["l2_params"] = jnp.sqrt(sum([jnp.vdot(p, p) for p in ps]))
-        us = jax.tree_leaves(updates)
-        measurements["l2_updates"] = jnp.sqrt(
-            sum([jnp.vdot(u, u) for u in us]))
+        # update function memeroy profiling
         save_device_memory_profile_to_gcs(f"memory_profile/update.prof", workdir)
-        return params, opt, rng, l, measurements
+        return freeze_params, tuneable_params,  opt, rng, l, measurements
 
     # We require hashable function reference for evaluator.
     # We do not jit/pmap this function, because it is passed to evaluator that
@@ -395,7 +364,19 @@ def main(argv):
     # needed.
     def predict_fn(params, image=None, text=None, **unused_kwargs):
         del unused_kwargs  # `unused_kwargs` is to be compatible with few-shot
-        zimg, ztxt, out = model.apply({"params": params}, image, text)
+        if config.get("lora", False):
+            freeze_params, tuneable_param = params
+            def forward(params, images, labels):
+                return   model.apply({"params": params}, images, labels)
+
+            lora_forward = lora(forward)
+            zimg, ztxt, out = lora_forward((freeze_params, tuneable_param), image, text)
+        else:
+            zimg, ztxt, out = model.apply({"params": params}, image, text)
+
+        # update function memeroy profiling
+        save_device_memory_profile_to_gcs(f"memory_profile/predict.prof", workdir)
+
         return zimg, ztxt, out
 
     # Only initialize evaluators when they are first needed.
@@ -420,15 +401,15 @@ def main(argv):
     if resume_ckpt_path:
         write_note("Resume training from checkpoint...")
         checkpoint = {
-            "params": params_cpu,
-            "opt": opt_cpu,
+            "params": params_merged_cpu,
+         #   "opt": opt_cpu, TODO: optimizer saving needs further inverstigation
             "chrono": chrono.save(),
         }
         checkpoint_tree = jax.tree_structure(checkpoint)
         loaded = load_checkpoint(checkpoint_tree, resume_ckpt_path)
         # bfloat16 type gets lost when data is saved to disk, so we recover it.
         checkpoint = jax.tree_map(recover_dtype, loaded)
-        params_cpu, opt_cpu = checkpoint["params"], checkpoint["opt"]
+        params_cpu = checkpoint["params"] #checkpoint["opt"]
         chrono.load(checkpoint["chrono"])
     elif config.get("model_init"):
         write_note(f"Initialize model from {config.model_init}...")
@@ -440,7 +421,7 @@ def main(argv):
                 params_cpu, msg="restored params")
 
     elif config.get('masked_init'):
-
+        write_note(f"Initialize model from {config.masked_init}...")
         pretrained_params_cpu = load_params(None, config.masked_init)
 
         params_cpu = merge_params(pretrained_params_cpu,
@@ -449,17 +430,68 @@ def main(argv):
                                                {'dont_load': []}))
 
     write_note("Kicking off misc stuff...")
-    first_step = optimizer.get_count(opt_cpu)
-    chrono.inform(first_step=first_step)
-    prof = None  # Keeps track of start/stop of profiler state.
 
     write_note(f"Replicating...\n{chrono.note}")
-    params_repl = flax.jax_utils.replicate(params_cpu)
-    opt_repl = flax.jax_utils.replicate(opt_cpu)
+    if config.get("lora", False):
+         # after loaded, we reinit the parameters again
+        freeze_paras, tune_params = init_lora(params_cpu, lora_spec, jax.random.PRNGKey(0))
+        params_cpu_merged = lora_merge_para(freeze_paras, tune_params, destructive=False)
+        #we initial optimizer and scheduler here
+        sched_fn = optimizer.create_learning_rate_schedule(total_steps=total_steps, batch_size=batch_size, data_size=ntrain_img,
+                                                           **config.schedule[0][1]
+                                                           )
+
+        from helpers.opt_util import filter_parameters, filter_bias_and_norm, filter_posembed, filter_t
+        mask = jax.tree_util.tree_map(
+             lambda x, y, z: bool(x and y and z),
+             filter_parameters(tune_params, filter_bias_and_norm),
+             filter_parameters(
+                 tune_params, filter_posembed
+             ), filter_parameters(
+                 tune_params, filter_t
+             )  # Note: we must exclude posembed wd in adamw
+         )
+        tx = optax.chain(
+            optax.scale_by_schedule(sched_fn),
+            optax.adamw(learning_rate=config.lr, b1=config.optax.b1, b2=config.optax.b2, weight_decay=config.wd, mask=mask,
+                        mu_dtype=config.optax.mu_dtype)
+        )
+        sched_fns = [sched_fn]
+
+        # We jit this, such that the arrays are created on the CPU, not device[0].
+        opt_cpu = jax.jit(tx.init, backend="cpu")(tune_params)
+        sched_fns_cpu = [jax.jit(sched_fn, backend="cpu")
+                         for sched_fn in sched_fns]
+
+        # compare tunable parameters and loaded parameters
+        params1 =params_cpu_merged
+        params2 =  params_cpu
+        def compare_params(node1, node2, node_name=""):
+            if isinstance(node1, dict):
+                for key in node1.keys():
+                    compare_params(node1[key], node2[key], node_name + f".{key}")
+            else:
+                if not jax.numpy.array_equal(node1, node2):
+                    print(f"Different parameter at node: {node_name}")
+
+        compare_params(params1, params2)
+        params_repl = flax.jax_utils.replicate(freeze_paras)
+        tune_repl = flax.jax_utils.replicate(tune_params)
+        opt_repl = flax.jax_utils.replicate(opt_cpu)
+    else:
+        params_repl = flax.jax_utils.replicate(params_cpu)
+        tune_repl = flax.jax_utils.replicate(params_cpu)
+        opt_repl = flax.jax_utils.replicate(opt_cpu)
+
 
     rng, rng_loop = jax.random.split(rng, 2)
     rngs_loop = flax.jax_utils.replicate(rng_loop)
     ckpt_writer = None
+    first_step = 0
+    #first_step = optimizer.get_count(opt_cpu)
+    chrono.inform(first_step=first_step)
+    prof = None  # Keeps track of start/stop of profiler state.
+
 
     write_note(f"First step compilations...\n{chrono.note}")
     if config.get('eval_only', False):
@@ -488,8 +520,9 @@ def main(argv):
 
         with jax.profiler.StepTraceAnnotation("train_step", step_num=step):
             with chrono.log_timing("z/secs/update0", noop=step > first_step + 1):
-                params_repl, opt_repl, rngs_loop, loss_value, measurements = update_fn(
-                    params_repl, opt_repl, rngs_loop, batch)
+                params_repl, tune_repl, opt_repl, rngs_loop, loss_value, measurements = update_fn(
+                    params_repl, tune_repl,  opt_repl, rngs_loop, batch)
+
 
         # On the first host, let's always profile a handful of early steps.
         if jax.process_index() == 0:
@@ -523,8 +556,14 @@ def main(argv):
             # alive while they'll be updated in a future step, creating hard to debug
             # memory errors (see (internal link)). Also, takes device 0's
             # params only.
-            params_cpu = jax.tree_map(lambda x: np.array(x[0]), params_repl)
-            opt_cpu = jax.tree_map(lambda x: np.array(x[0]), opt_repl)
+
+            #params_cpu = lora_merge_para(jax.tree_map(lambda x: np.array(x[0]), params_repl), jax.tree_map(lambda x: np.array(x[0]), tune_repl))
+            if config.get("lora", False):
+                params_cpu = lora_merge_para(jax.tree_map(lambda x: np.array(x[0]), params_repl), jax.tree_map(lambda x: np.array(x[0]), tune_repl), destructive=False)
+            else:
+                params_cpu = jax.tree_map(lambda x: np.array(x[0]), tune_repl)
+
+            #opt_cpu = jax.tree_map(lambda x: np.array(x[0]), opt_repl)
 
             # Check whether we want to keep a copy of the current checkpoint.
             copy_step = None
@@ -533,7 +572,7 @@ def main(argv):
 
             ckpt = {
                 "params": params_cpu,
-                "opt": opt_cpu,
+                #"opt": opt_cpu, #hack this we cannot restroe opt for now since
                 "chrono": chrono.save()}
             ckpt_writer = pool.apply_async(
                 save_checkpoint, (ckpt, save_ckpt_path, copy_step))
@@ -550,8 +589,13 @@ def main(argv):
                 # Record things like epoch number, core hours etc.
                 chrono.tick(step)
                 write_note(f"{name} evaluation...\n{chrono.note}")
+
                 with chrono.log_timing(f"z/secs/eval/{name}"):
-                    for key, value in evaluator.run(params_repl):
+                    if config.get("lora", False):
+                        params_merged = (params_repl, tune_repl)
+                    else:
+                        params_merged = tune_repl
+                    for key, value in evaluator.run(params_merged):
                         metric.measure(f"{prefix}{key}", value)
                 chrono.resume()
         metric.step_end()
@@ -566,15 +610,19 @@ def main(argv):
             # step-wise memeroy profiling
             save_device_memory_profile_to_gcs(f"memory_profile/memory{step}.prof", workdir)
 
-
     # Run evals after done with training. Running them here guarantees evals
     # will run if job is restarted after writting the last checkpoint and
     # also supports eval only runs (when total_steps or num_epochs is 0).
     metric.step_start(total_steps)
     for (name, evaluator, _, prefix) in evaluators():
         write_note(f"{name} evaluation...\n{chrono.note}")
+
         with chrono.log_timing(f"z/secs/eval/{name}"):
-            for key, value in evaluator.run(params_repl):
+            if config.get("lora", False):
+                params_merged = (params_repl, tune_repl)
+            else:
+                params_merged = tune_repl
+            for key, value in evaluator.run(params_merged):
                 metric.measure(f"{prefix}{key}", value)
     if has_wandb and jax.process_index() == 0:
         if config.wandb.log_wandb:
@@ -596,6 +644,7 @@ def main(argv):
 
     maybe_cleanup_workdir(workdir, flags.FLAGS.cleanup, info)
 
+    jax.profiler.stop_server()
 
 if __name__ == "__main__":
     app.run(main)

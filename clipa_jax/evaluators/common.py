@@ -27,7 +27,7 @@ import flax
 
 def from_config(config, predict_fns,
                 write_note=lambda s: s,
-                get_steps=lambda key, cfg: cfg[f"{key}_steps"]):
+                get_steps=lambda key, cfg: cfg[f"{key}_steps"], **kwargs):
   """Creates a list of evaluators based on `config`."""
   evaluators = []
   specs = config.get("evals", {})
@@ -58,7 +58,7 @@ def from_config(config, predict_fns,
           + "\n".join(predict_fns)) from e
     if pred_kw is not None:
       predict_fn = _CacheablePartial(predict_fn, flax.core.freeze(pred_kw))
-    evaluator = module.Evaluator(predict_fn, **cfg)
+    evaluator = module.Evaluator(predict_fn, **cfg, **kwargs)
     evaluators.append((name, evaluator, logsteps, prefix))
 
   return evaluators

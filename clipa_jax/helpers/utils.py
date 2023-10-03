@@ -1152,3 +1152,59 @@ def load_yutong_ckpt(jax_vit_paras, model='large'):
     params = merge_params(params, jax_vit_paras)
     params = jax.tree_map(recover_dtype, params)
     return params
+
+from typing import Callable, Optional
+from jax._src import xla_bridge
+from jax._src.lib import xla_client
+
+def device_memory_profile(backend: Optional[str] = None) -> bytes:
+  """Captures a JAX device memory profile as ``pprof``-format protocol buffer.
+
+  A device memory profile is a snapshot of the state of memory, that describes the JAX
+  :class:`jax.DeviceArray` and executable objects present in memory and their
+  allocation sites.
+
+  For more information how to use the device memory profiler, see
+  :doc:`/device_memory_profiling`.
+
+  The profiling system works by instrumenting JAX on-device allocations,
+  capturing a Python stack trace for each allocation. The instrumentation is
+  always enabled; :func:`device_memory_profile` provides an API to capture it.
+
+  The output of :func:`device_memory_profile` is a binary protocol buffer that
+  can be interpreted and visualized by the `pprof tool
+  <https://github.com/google/pprof>`_.
+
+  Args:
+    backend: optional; the name of the JAX backend for which the device memory
+      profile should be collected.
+
+  Returns:
+    A byte string containing a binary `pprof`-format protocol buffer.
+  """
+  return xla_client.heap_profile(xla_bridge.get_backend(backend))
+
+def save_device_memory_profile_to_gcs(filename, work_dir = None,  backend: Optional[str] = None):
+
+  """Collects a device memory profile and writes it to a file.
+
+  :func:`save_device_memory_profile` is a convenience wrapper around :func:`device_memory_profile`
+  that saves its output to a ``filename``. See the
+  :func:`device_memory_profile` documentation for more information.
+
+  Args:
+    filename: the filename to which the profile should be written.
+    backend: optional; the name of the JAX backend for which the device memory
+      profile should be collected.
+  """
+  profile = device_memory_profile(backend)
+
+  with open(filename, "wb") as f:
+    f.write(profile)
+  # if work_dir:
+  #     path_tmp = os.path.join(work_dir, filename,  "-TEMPORARY")
+  #     with gfile.GFile(path_tmp, "wb") as f:
+  #         f.write(profile)
+  #     now_name = os.path.join(work_dir, filename)
+  #     gfile.rename(path_tmp, now_name, overwrite=True)
+

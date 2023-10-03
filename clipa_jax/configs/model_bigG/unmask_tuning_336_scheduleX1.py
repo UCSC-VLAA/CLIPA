@@ -25,7 +25,7 @@ from ml_collections import ConfigDict
 def get_config(arg=None):
   """The base configuration."""
   arg = bvcc.parse_arg(
-      arg,  res=224, runlocal=False, batchsize=32768,  token_len=32, txt='bert_base', img='L/16',
+      arg,  res=336, runlocal=False, batchsize=16384,  token_len=32, txt='bert_base', img='G/14',
       init='', img_head=True, load_pretrain=False)
   img_name, img_init = common.inits[arg.img]
   txt_name, txt_init = common.inits[arg.txt]
@@ -48,14 +48,14 @@ def get_config(arg=None):
       f'bert_tokenize(inkey="{inkey}", max_len={arg.token_len}, '
       f'vocab_path="{vocab_path}")')
   config.input.pp = pp_eval = (
-      f'inception_crop(inkey="jpg", size={arg.res}, area_min=40, method="bilinear", antialias=True)|'
+      f'inception_crop(inkey="jpg", size={arg.res}, area_min=40, method="bilinear", antialias=True)|simclr_jitter_gray(jitter_strength=0.4)'
       f'|flatten|{tokenizer("txt")}|keep("image", "labels")'
   )
   config.pp_modules = [
       'ops_general', 'ops_image', 'ops_text', 'bert_ops']
 
   config.cpu_unit8 = True
-  config.mask_ratio = 0.0
+  config.mask_ratio = 0.4
 
   # Model section
   config.model_name = 'two_towers'
@@ -65,7 +65,7 @@ def get_config(arg=None):
   config.model.text_model = 'text_transformer'
   config.model.image = ConfigDict({
       'variant': img_name,
-      'pool_type': 'tok',
+      'pool_type': 'gap',
       'posemb': 'sincos2d',
       'remat_policy': 'actcp', #gradient checkpointing
       'head_zeroinit': False,
@@ -73,10 +73,11 @@ def get_config(arg=None):
   config.model.text = ConfigDict({
       'variant': img_name,
       'pool_type': 'last',
+      'remat_policy': 'actcp',
       'head_zeroinit': False,
   })
   config.model.temperature_init = 1/0.07
-  dim = {'T': 192, 'S':384, 'B': 512, 'L': 768}[arg.img[0]]
+  dim = {'T': 192, 'S':384, 'B': 512, 'L': 768, 'H': 1024, 'G':1280}[arg.img[0]]
   config.model.out_dim = (dim if arg.img_head else None, dim)  # (image_out_dim, text_out_dim)
 
   # load pre-trained ckpt
@@ -85,22 +86,23 @@ def get_config(arg=None):
   # optimizer config
   config.optax_name = 'scale_by_adam'
   config.total_steps = int(131072000 // arg.batchsize)  # seen_samples // batchsize to get the number of steps
-  config.lr = 4e-7 * (arg.batchsize // 256)
+  config.lr = 1e-7 * (arg.batchsize // 256)
   config.wd = 0.2
   warmup_steps = int(26214400 // arg.batchsize) # seen_samples // batchsize to get the number of steps
   config.schedule = [
-      ('.*', dict(decay_type='cosine', warmup_steps=warmup_steps, min_lr=0, max_lr=4e-7 * (arg.batchsize // 256))),
+      ('.*', dict(decay_type='cosine', warmup_steps=warmup_steps, min_lr=0, max_lr=1e-7 * (arg.batchsize // 256))),
   ]
 
-  config.optax = dict(mu_dtype='float32',  b1=0.9,  b2=0.95)
+  config.optax = dict(mu_dtype='bfloat16',  b1=0.9,  b2=0.95)
   config.loss_use_global_batch = True
   config.local_loss = True
-
-  config.lora = True
-  # partitioning
+  config.lora = False
   config.partitioning = {}
-  config.partitioning.num_partitions = 1
-  config.partitioning.partition_states = False
+  config.partitioning.num_partitions = 2
+  config.partitioning.partition_states = True
+  config.partitioning.params_on_devices = True
+  config.partitioning.activation_partitioning_dims = 2
+  config.partitioning.parameter_partitioning_dims = 2
 
 
   # log section
@@ -111,8 +113,8 @@ def get_config(arg=None):
       wandb_offline=False,
       resume=False,
       debug_data=False,
-      project='clip_image_scaling_unmask_tuning',
-      experiment=f'L16_32k_{arg.res}_{arg.token_len}_tok_sin2d_lr8e',
+      project='clip_scaling_unmask_tuning',
+      experiment=f'H14_224_mask30_32k_{arg.res}_{arg.token_len}_gap_sin2d_lr8e',
       entity='xianhangli'
   )
   config.save_ckpt = True
@@ -133,7 +135,7 @@ def get_config(arg=None):
   config.evals.disclf.dataset_names = ['imagenet2012']
   config.evals.disclf.split = f'validation{sub}'
   config.evals.disclf.data_dir = 'gs://celt-tfds-imagenet-eu'
-  config.evals.disclf.pp_img = f'|resize_small({arg.res}, method="bilinear", antialias=True)|central_crop({arg.res})|vgg_value_range'
+  config.evals.disclf.pp_img = f'|resize({arg.res}, method="bilinear", antialias=True)|vgg_value_range' # directly resize works better
   config.evals.disclf.pp_txt = tokenizer('texts')
   config.evals.disclf.type = 'proj.image_text.discriminative_classifier'
   config.evals.disclf.prefix = 'z/0shot/'

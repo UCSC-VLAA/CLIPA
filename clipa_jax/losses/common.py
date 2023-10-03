@@ -14,7 +14,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import logging
+import math
 
 import jax
 import jax.numpy as jnp
@@ -100,6 +101,40 @@ def bidirectional_contrastive_loss(
                 logits, axis=1) == jnp.arange(
                 len(logits))), }
 
+# copy from flip
+
+def efficient_contrastive_loss(z0, z1, t):
+    #t = jnp.clip(t, 0, math.log(100))
+    #logging.info(z0.shape, z1.shape)
+
+    logits =  jnp.dot(z0, z1.T) * t
+    l1 = -jnp.diag(jax.nn.log_softmax(logits, axis=1))  # NLL img->txt
+    l2 = -jnp.diag(jax.nn.log_softmax(logits, axis=0))  # NLL txt->img
+    l = 0.5 * (l1 + l2)
+
+
+    return jnp.mean(l)
+    # # ---------------------------------------------------------------------------
+    # logits_pos = jnp.einsum(
+    #     "nc,nc->n", z0, z1
+    # )  # easier to take the diagonal (positive)
+    # logits_pos *= scale
+    #
+    # # hand-written log_softmax
+    # # we do not need to shift x_max as it is well-bound after l2-normalization
+    # exp_logits = jnp.exp(logits)
+    # logsumexp_logits01 = jnp.log(jnp.sum(exp_logits, axis=-1))  # [N,]
+    # logsumexp_logits10 = jnp.log(jnp.sum(exp_logits, axis=0))  # [N,]
+    #
+    # loss01 = -(logits_pos - logsumexp_logits01)  # [N,]
+    # loss10 = -(logits_pos - logsumexp_logits10)  # [N,]
+    #
+    # loss01 = loss01.mean()
+    # loss10 = loss10.mean()
+    #
+    # loss = (loss01 + loss10) / 2
+    #
+    # return loss
 
 def softmax_xent(*, logits, labels, reduction=True, kl=False, axis=-1):
     log_p = jax.nn.log_softmax(logits, axis=axis)

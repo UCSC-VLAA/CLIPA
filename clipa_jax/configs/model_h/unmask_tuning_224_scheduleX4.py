@@ -82,6 +82,7 @@ def get_config(arg=None):
 
   # load pre-trained ckpt
   config.masked_init = "[your pre-trained weight lcoation]"
+  config.masked_no_load = {'dont_load': ['.*txt/pos_embedding.*']}
 
   # optimizer config
   config.optax_name = 'scale_by_adam'
@@ -111,7 +112,7 @@ def get_config(arg=None):
       entity='[your wandb login name]'
   )
   config.save_ckpt = True
-
+  config.lora = False
 
   # Eval section (Both few-shot and zero-shot)
   config.eval_only = False

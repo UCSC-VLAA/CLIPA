@@ -96,6 +96,10 @@ def get_config(arg=None):
   config.optax = dict(mu_dtype='bfloat16',  b1=0.9,  b2=0.95) #save memeroy and 10% faster
   config.loss_use_global_batch = True
   config.local_loss = True
+  config.lora = False
+  config.partitioning = {}
+  config.partitioning.num_partitions = 1
+  config.partitioning.partition_states = True
 
 
   # log section
