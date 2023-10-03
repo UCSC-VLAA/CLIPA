@@ -15,5 +15,5 @@ gcloud alpha compute tpus tpu-vm scp --recurse ../../CLIPA/  $TPU_NAME:~/  --zon
 
 
 #  prepare env will create an env installed all required softwares
-gcloud alpha compute tpus tpu-vm ssh $TPU_NAME  --project=$PROJECT_ID --zone=$ZONE --worker=all --command "cd CLIPA/clipa_jax &&  bash scripts/prepare_env.sh"
+gcloud alpha compute tpus tpu-vm ssh $TPU_NAME  --project=$PROJECT_ID --zone=$ZONE --worker=all --command "cd CLIPA/clipa_jax &&  bash scripts/tools/prepare_env.sh"
 

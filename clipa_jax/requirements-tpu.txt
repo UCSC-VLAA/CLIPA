@@ -2,10 +2,10 @@ absl-py==1.4.0
 chex==0.1.5
 clu==0.0.8
 einops==0.6.0
-flax==0.6.3
+flax==0.7.0
 git+https://github.com/google/flaxformer
 
-jax[tpu]==0.4.1
+jax[tpu]==0.4.6
 --find-links https://storage.googleapis.com/jax-releases/libtpu_releases.html
 
 ml-collections==0.1.1
