@@ -379,7 +379,7 @@ def main(argv):
 
     resume_step = None
     if save_ckpt_path and gfile.exists(save_ckpt_path) and gfile.exists(t5x_path):
-        resume_step = 190000
+
         params_tpu = ckp.restore_checkpoint(checkpointer, path=t5x_path, step=resume_step)
         if resume_step:
             first_step = resume_step
@@ -398,9 +398,6 @@ def main(argv):
     elif config.get('masked_init', None):
         logging.info("Initializing train_state...")
 
-
-       # params_tpu = p_init_fn(rng_init)
-       # params_tpu = p_init_fn(rng_init)
 
 
 
