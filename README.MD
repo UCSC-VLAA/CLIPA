@@ -10,12 +10,21 @@ enable training with fewer image/text tokens while maintaining competitive perfo
 
 
 
+
 ## 📰 News
 
-**[Note]** All of our [CLIPA-v2](https://arxiv.org/abs/2306.15658) models were trained on TPU using our [JAX codebase](https://github.com/UCSC-VLAA/CLIPA/tree/master/clipa_jax). We followed the same pre-training process as CLIPA-v1, but with a more efficient fine-tuning strategy. In order to replicate our results, we have provided the **training configuration** (e.g. the H-14 model in this folder [here](https://github.com/UCSC-VLAA/CLIPA/tree/master/clipa_jax/configs/model_h)), along with the **pre-trained weights, configuration, and logs**, which can be found [here](https://drive.google.com/drive/folders/1ArW1-JL7DL43ifg47cIJ4CBeMFIpPkrR?usp=sharing).  
+
+**[2023.10.4]** We have achieved a successful scale-up of our model to **G/14**, attaining an impressive **83.0%** zero-shot top-1 accuracy on the ImageNet-1K dataset.
+For the detailed training configuration, please refer to the [t5x branch](https://github.com/UCSC-VLAA/CLIPA/tree/t5x/clipa_jax/configs/model_bigG). Additionally, you can access the pre-trained and fine-tuned weights for the JAX version in the [Google Drive](https://drive.google.com/drive/folders/1nu5i8mLbOvYq4kovoLP85DjjV8I3N46L?usp=sharing).
 <br>
 
+**[2023.9.21]** [Our paper](https://arxiv.org/abs/2305.07017) is accepted by **NeurIPS 2023**!
+
+
 **[2023.6.16]**  We release [CLIPA-v2](https://arxiv.org/abs/2306.15658). Compared to the prior best publicly available CLIP model, our CLIPA-v2 can be trained significantly faster and yields stronger performance. Our best model is H/14@336x336 on DataComp-1B with an accuracy of 81.8, and its estimated training cost is <$15k! 
+<br>
+
+**[Note]** All of our [CLIPA-v2](https://arxiv.org/abs/2306.15658) models were trained on TPU using our [JAX codebase](https://github.com/UCSC-VLAA/CLIPA/tree/master/clipa_jax). We followed the same pre-training process as CLIPA-v1, but with a more efficient fine-tuning strategy. In order to replicate our results, we have provided the **training configuration** (e.g. the H-14 model in this folder [here](https://github.com/UCSC-VLAA/CLIPA/tree/master/clipa_jax/configs/model_h)), along with the **pre-trained weights, configuration, and logs**, which can be found [here](https://drive.google.com/drive/folders/1ArW1-JL7DL43ifg47cIJ4CBeMFIpPkrR?usp=sharing).  
 <br>
 
 <p align="center">
