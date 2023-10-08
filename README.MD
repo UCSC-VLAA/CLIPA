@@ -94,7 +94,7 @@ By reducing the computation barrier associated with CLIP, we hope to inspire mor
 </p>
 
 ## TPU Usage
-Our experiments are conducted on both GPUs and TPUs. Both the JAX and PyTorch implementation enable TPU training.
+Our experiments are conducted on both GPUs and TPUs. Both the JAX and PyTorch implementations enable TPU training.
 But how to gain access and setup TPU machines? Check this [brief doc](TPU_USAGE.md).
 In a nutshell, you can access TPU machines on Google Cloud **for free**!
 
@@ -114,10 +114,10 @@ We are also very grateful that this work is supported by a gift from Open Philan
 ## Citation
 
 ```
-@article{li2023clipa,
+@inproceedings{li2023clipa,
       title={An Inverse Scaling Law for CLIP Training}, 
       author={Xianhang Li and Zeyu Wang and Cihang Xie},
-      journal={arXiv preprint arXiv:2305.07017},
+      booktitle={NeurIPS},
       year={2023},
 }
 @article{li2023clipav2,
@@ -128,6 +128,6 @@ We are also very grateful that this work is supported by a gift from Open Philan
 }
 ```
 ## Contact
-If you have any question, please feel free to raise an issue or contact us directily: 
+If you have any questions, please feel free to raise an issue or contact us directly: 
 Xianhang Li: xli421@ucsc.edu;
 Zeyu Wang:  zwang615@ucsc.edu
