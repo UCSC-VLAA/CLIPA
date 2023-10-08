@@ -64,6 +64,13 @@ For the detailed training configuration, please refer to the [t5x branch](https:
 <td align="center">$13613</td>
 <td align="center">81.8</td>
 <td align="center"><a href="https://drive.google.com/file/d/1oOACMg3MKXUpG-xn-UrqDWFVEIvenA-F/view?usp=sharing">PyTorch / <a href="https://drive.google.com/file/d/1t0k_5m3VVLRyThUjc4JQ_-z29hABuFBV/view?usp=sharing">JAX</td>
+<tr><td align="left">G/14</td>
+<td align="center">DataCOMP-1B</td>
+<td align="center">12.8B@84 + 512M@224 + +128M@336</td>
+<td align="center">23742</td>
+<td align="center">$39056</td>
+<td align="center">83.0</td>
+<td align="center"><a href="https://drive.google.com/file/d/1WpSMISoitcrBjQr2i9jXOVc7fJGEGFZc/view?usp=drive_link">PyTorch / <a href="https://drive.google.com/file/d/1WwXPYb61Zoz-Zd3R5sRwEIGlPRDj3QJo/view?usp=sharing">JAX</td>
 </tbody></table>
 
 Our CLIPA-v2’s GPU hour is estimated using an 8-A100 80GB GPU machine on Google Cloud. 
