@@ -49,9 +49,9 @@ bash scripts/fine_tuning.sh
 | H-14  | 84    | 8    | LAION-2B    | 12.8B         | 72.1 | [weight](https://drive.google.com/drive/folders/1xSxdNZFg2Vhun5898fQdDxGG8c8ex-wm?usp=sharing) |
 | L-14  | 84    | 8    | DataCOMP-1B | 12.8B         | 72.7 | [weight](https://drive.google.com/drive/folders/1imPeZKbLjjRVGI_vo-2FQ1KdTQ10EAJN?usp=sharing) |
 | H-14  | 84    | 8    | DataCOMP-1B | 12.8B         | 75.6 | [weight](https://drive.google.com/drive/folders/19utZrXiCnlFBvLljhCsymH969-WvGf4c?usp=sharing) |
+| G-14  | 84    | 8    | DataCOMP-1B | 12.8B         | 78.5 | [weight](https://drive.google.com/drive/folders/1afYnSkC9MUkFiZ4t1-r3guacEQ3r3HjP?usp=drive_link) |
 
-
-## Results
+## Fine-tuned Results
 <table><tbody>
 <!-- START TABLE -->
 <!-- TABLE HEADER -->
@@ -112,6 +112,20 @@ bash scripts/fine_tuning.sh
 <td align="center">$13616</td>
 <td align="center">81.8</td>
 <td align="center"><a href="https://drive.google.com/file/d/1t0k_5m3VVLRyThUjc4JQ_-z29hABuFBV/view?usp=sharing">download</td>
+<tr><td align="left">G/14</td>
+<td align="center">DataCOMP-1B</td>
+<td align="center">12.8B@84 + 512M@224</td>
+<td align="center">21,998</td>
+<td align="center">$34,646</td>
+<td align="center">82.5</td>
+<td align="center"><a href="https://drive.google.com/file/d/1kgcfTOEcn1koZf_HkZYZhDpz4p5wKWPY/view?usp=sharing">download</td>
+<tr><td align="left">G/14</td>
+<td align="center">DataCOMP-1B</td>
+<td align="center">12.8B@84 + 512M@224 + 128M@336</td>
+<td align="center">23742</td>
+<td align="center">$39056</td>
+<td align="center">83.0</td>
+<td align="center"><a href="https://drive.google.com/file/d/1WwXPYb61Zoz-Zd3R5sRwEIGlPRDj3QJo/view?usp=drive_link">download</td>
 </tbody></table>
 
 Our CLIPA-v2’s GPU hour is estimated using an 8-A100 80GB GPU machine on Google Cloud. 
