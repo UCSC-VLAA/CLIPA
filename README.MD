@@ -28,7 +28,7 @@ For the detailed training configuration, please refer to the [t5x branch](https:
 <br>
 
 <p align="center">
-  <img src="clipa_jax/figs/CLIPA_v2_teaser.png" width="1080">
+  <img src="clipa_jax/figs/clipav2_teaser.png" width="1080">
 </p>
 
 
