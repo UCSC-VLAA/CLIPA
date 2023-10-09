@@ -164,6 +164,20 @@ Try our example testing scripts for evaluation.
 <td align="center">$13616</td>
 <td align="center">81.8</td>
 <td align="center"><a href="https://drive.google.com/file/d/1oOACMg3MKXUpG-xn-UrqDWFVEIvenA-F/view?usp=sharing">download</td>
+<tr><td align="left">bigG/14</td>
+<td align="center">DataCOMP-1B</td>
+<td align="center">12.8B@84 + 512M@224</td>
+<td align="center">21998</td>
+<td align="center">$34646</td>
+<td align="center">82.7</td>
+<td align="center"><a href="https://drive.google.com/file/d/1WpSMISoitcrBjQr2i9jXOVc7fJGEGFZc/view?usp=drive_link">download</td>
+<tr><td align="left">bigG/14</td>
+<td align="center">DataCOMP-1B</td>
+<td align="center">12.8B@84 + 512M@224 + 128M@336</td>
+<td align="center">23772</td>
+<td align="center">$39056</td>
+<td align="center">83.0</td>
+<td align="center"><a href="https://drive.google.com/file/d/1WpSMISoitcrBjQr2i9jXOVc7fJGEGFZc/view?usp=drive_link">download</td>
 </tbody></table>
 
 Our CLIPA-v2’s GPU hour is estimated using an 8-A100 80GB GPU machine on Google Cloud. 

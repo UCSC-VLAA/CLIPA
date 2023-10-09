@@ -14,8 +14,8 @@ enable training with fewer image/text tokens while maintaining competitive perfo
 ## 📰 News
 
 
-**[2023.10.4]** We have achieved a successful scale-up of our model to **G/14**, attaining an impressive **83.0%** zero-shot top-1 accuracy on the ImageNet-1K dataset.
-For the detailed training configuration, please refer to the [t5x branch](https://github.com/UCSC-VLAA/CLIPA/tree/t5x/clipa_jax/configs/model_bigG). Additionally, you can access the pre-trained and fine-tuned weights for the JAX version in the [Google Drive](https://drive.google.com/drive/folders/1nu5i8mLbOvYq4kovoLP85DjjV8I3N46L?usp=sharing).
+**[2023.10.4]** We have achieved a successful scale-up of our model to **bigG/14**, attaining an impressive **83.0%** zero-shot top-1 accuracy on the ImageNet-1K dataset.
+For the detailed training configuration, please refer to the [t5x branch](https://github.com/UCSC-VLAA/CLIPA/tree/t5x/clipa_jax/configs/model_bigG). Additionally, you can access the pre-trained and fine-tuned weights for both JAX and PyTorch version in the [Google Drive](https://drive.google.com/drive/folders/1nu5i8mLbOvYq4kovoLP85DjjV8I3N46L?usp=sharing).
 <br>
 
 **[2023.9.21]** [Our paper](https://arxiv.org/abs/2305.07017) is accepted by **NeurIPS 2023**!
@@ -64,7 +64,7 @@ For the detailed training configuration, please refer to the [t5x branch](https:
 <td align="center">$13613</td>
 <td align="center">81.8</td>
 <td align="center"><a href="https://drive.google.com/file/d/1oOACMg3MKXUpG-xn-UrqDWFVEIvenA-F/view?usp=sharing">PyTorch / <a href="https://drive.google.com/file/d/1t0k_5m3VVLRyThUjc4JQ_-z29hABuFBV/view?usp=sharing">JAX</td>
-<tr><td align="left">G/14</td>
+<tr><td align="left">bigG/14</td>
 <td align="center">DataCOMP-1B</td>
 <td align="center">12.8B@84 + 512M@224 + +128M@336</td>
 <td align="center">23742</td>
