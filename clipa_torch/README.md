@@ -170,7 +170,7 @@ Try our example testing scripts for evaluation.
 <td align="center">21998</td>
 <td align="center">$34646</td>
 <td align="center">82.7</td>
-<td align="center"><a href="https://drive.google.com/file/d/1WpSMISoitcrBjQr2i9jXOVc7fJGEGFZc/view?usp=drive_link">download</td>
+<td align="center"><a href="https://drive.google.com/file/d/1M-Zu-RddUIX7NTUQwUw_8LvXFNNoAhgk/view?usp=sharing">download</td>
 <tr><td align="left">bigG/14</td>
 <td align="center">DataCOMP-1B</td>
 <td align="center">12.8B@84 + 512M@224 + 128M@336</td>
